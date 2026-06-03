@@ -1,0 +1,114 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fb_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-feedbackuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-feedbackpass}
+      POSTGRES_DB: ${DB_NAME:-feedbackboard}
+    ports:
+      - "${DB_PORT:-3002}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fb_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-feedbackuser} -d ${DB_NAME:-feedbackboard}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fb_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-3003}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fb_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: fb_mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-3004}:8025"
+      - "${MAILPIT_SMTP_PORT:-3005}:1025"
+    networks:
+      - fb_network
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    container_name: fb_api
+    restart: unless-stopped
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      PORT: ${API_PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: false         
+      SMTP_IGNORE_TLS: true       
+      SMTP_FROM: ${SMTP_FROM:-feedback@feedbackboard.dev}
+      JWT_SECRET: ${JWT_SECRET}  # sin fallback, para que falle si no está definida
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      WEB_URL: ${WEB_URL:-http://localhost:3001}
+    volumes:
+      - ./api:/app
+      - ./shared:/shared    # Paquete de schemas compartidos
+      - /app/node_modules
+    networks:
+      - fb_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    container_name: fb_web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      VITE_PROXY_TARGET: ${VITE_PROXY_TARGET:-http://fb_api:3000}
+    volumes:
+      - ./web:/app
+      - ./shared:/shared    # Paquete de schemas compartidos
+      - /app/node_modules
+    networks:
+      - fb_network
+
+networks:
+  fb_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

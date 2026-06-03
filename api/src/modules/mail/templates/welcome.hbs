@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bienvenido a FeedbackBoard</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f5; margin: 0; padding: 32px 16px; }
+    .card { background: #fff; border-radius: 12px; max-width: 480px; margin: 0 auto; padding: 40px 32px; }
+    h1 { font-size: 20px; color: #18181b; margin: 0 0 8px; }
+    p { font-size: 14px; color: #71717a; line-height: 1.6; margin: 0 0 24px; }
+    .btn { display: inline-block; background: #0d9488; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+    .footer { font-size: 12px; color: #a1a1aa; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>¡Bienvenido, {{name}}!</h1>
+    <p>Tu cuenta en FeedbackBoard ha sido creada correctamente. Ya puedes ingresar, votar sugerencias y enviar tus propias ideas.</p>
+    <a href="{{loginUrl}}" class="btn">Ir al board</a>
+    <p class="footer">Si no creaste esta cuenta, puedes ignorar este email.</p>
+  </div>
+</body>
+</html>

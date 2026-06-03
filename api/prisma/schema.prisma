@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Category {
+  FEATURE
+  BUG
+  IMPROVEMENT
+  OTHER
+}
+
+enum SuggestionStatus {
+  PENDING
+  UNDER_REVIEW
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  password            String
+  name                String
+  role                Role                 @default(MEMBER)
+  avatarUrl           String?
+  bio                 String?
+  phone               String?
+  location            String?
+  website             String?
+  twitterHandle       String?
+  githubHandle        String?
+  linkedinHandle      String?
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  suggestions         Suggestion[]
+  votes               Vote[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+model Suggestion {
+  id          String           @id @default(uuid())
+  title       String
+  description String
+  category    Category
+  status      SuggestionStatus @default(PENDING)
+  authorId    String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  author      User             @relation(fields: [authorId], references: [id])
+  votes       Vote[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([category])
+  @@map("suggestions")
+}
+
+model Vote {
+  id           String     @id @default(uuid())
+  userId       String
+  suggestionId String
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id])
+  suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
+
+  @@unique([userId, suggestionId])
+  @@index([suggestionId])
+  @@map("votes")
+}

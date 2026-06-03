@@ -1,0 +1,17 @@
+{
+  "name": "feedbackboard-shared",
+  "version": "1.0.0",
+  "description": "Shared schemas and types",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "peerDependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
