@@ -53,4 +53,17 @@ export const authService = {
     const { data } = await api.get(`/auth/validate-token?token=${token}`);
     return data;
   },
+
+  logout: async (): Promise<void> => {
+    await api.post("/auth/logout", null, {
+      withCredentials: true, // envía la httpOnly cookie
+    });
+  },
+
+  refresh: async (): Promise<LoginResponse> => {
+    const { data } = await api.post("/auth/refresh", null, {
+      withCredentials: true, // envía la refresh cookie
+    });
+    return LoginResponseSchema.parse(data);
+  },
 };

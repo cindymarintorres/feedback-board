@@ -1,13 +1,15 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 import type { LoginDto, LoginResponse } from "feedbackboard-shared";
 
-export const useLogin = () => {
+export const useAuthActions = () => {
   const navigate = useNavigate();
   const { dispatch } = useAuth();
+  const queryClient = useQueryClient();
 
+  // ───Login ───────────────────────────────────────
   const loginMutation = useMutation({
     mutationFn: (payload: LoginDto) => authService.login(payload),
     onSuccess: (data: LoginResponse) => {
@@ -30,5 +32,17 @@ export const useLogin = () => {
     },
   });
 
-  return { loginMutation };
+  // ─── Logout ───────────────────────────────────────
+  const logoutMutation = useMutation({
+    mutationFn: () => authService.logout(),
+    onSettled: () => {
+      // onSettled corre tanto si éxito como si falla
+      // así el usuario siempre queda deslogueado del lado cliente
+      queryClient.clear(); // limpia cache de react-query
+      dispatch({ type: "LOGOUT" });
+      navigate("/login");
+    },
+  });
+
+  return { loginMutation, logoutMutation };
 };
