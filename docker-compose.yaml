@@ -71,7 +71,9 @@ services:
       SMTP_IGNORE_TLS: true       
       SMTP_FROM: ${SMTP_FROM:-feedback@feedbackboard.dev}
       JWT_SECRET: ${JWT_SECRET}  # sin fallback, para que falle si no está definida
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}  # sin fallback, para que falle si no está definida
+      REFRESH_TOKEN_EXPIRE_IN: ${REFRESH_TOKEN_EXPIRE_IN:-7d}
       WEB_URL: ${WEB_URL:-http://localhost:3001}
     volumes:
       - ./api:/app
