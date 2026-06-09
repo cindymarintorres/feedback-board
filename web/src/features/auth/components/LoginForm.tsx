@@ -1,12 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Mail, Lock, LogIn, EyeOff, Eye } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
-import { useLogin } from "@/hooks/useLogin";
+import { useAuthActions } from "@/hooks/useAuthActions";
 import { LoginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schema";
+import { useState } from "react";
 
 export const LoginForm = () => {
-  const { loginMutation } = useLogin();
+  const { loginMutation } = useAuthActions();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -38,9 +40,11 @@ export const LoginForm = () => {
       <AppInput
         id="password"
         label="Contraseña"
-        type="password"
+        type={showPassword ? "text" : "password"}
         placeholder="••••••••"
         leftIcon={Lock}
+        rightIcon={showPassword ? Eye : EyeOff}
+        onRightIconClick={() => setShowPassword((pass) => !pass)}
         error={errors.password?.message}
         {...register("password")}
       />

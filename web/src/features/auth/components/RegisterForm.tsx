@@ -71,7 +71,7 @@ export const RegisterForm = () => {
         type={showNew ? "text" : "password"}
         placeholder="••••••••"
         leftIcon={Lock}
-        rightIcon={showNew ? EyeOff : Eye}
+        rightIcon={showNew ? Eye : EyeOff}
         onRightIconClick={() => setShowNew((value) => !value)}
         error={errors.password?.message}
         {...register("password")}
@@ -83,7 +83,7 @@ export const RegisterForm = () => {
         type={showConfirm ? "text" : "password"}
         placeholder="••••••••"
         leftIcon={Lock}
-        rightIcon={showConfirm ? EyeOff : Eye}
+        rightIcon={showConfirm ? Eye : EyeOff}
         onRightIconClick={() => setShowConfirm((value) => !value)}
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}

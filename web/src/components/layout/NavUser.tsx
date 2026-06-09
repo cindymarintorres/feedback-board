@@ -1,5 +1,5 @@
 import { BadgeCheck, ChevronsUpDown, LogOut, User } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,22 +17,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthActions } from "@/hooks/useAuthActions";
 
 export function NavUser() {
-  const { state, dispatch } = useAuth();
+  const { state } = useAuth();
   const { isMobile } = useSidebar();
-  const navigate = useNavigate();
+  const { logoutMutation } = useAuthActions();
 
   const user = state.user;
   if (!user) return null;
 
-const handleLogout = () => {
-  dispatch({ type: "SET_LOADING", payload: true }); // spinner ON
-  setTimeout(() => {
-    dispatch({ type: "LOGOUT" }); // limpia contexto + localStorage
-    navigate("/login");
-  }, 800); // mismo delay que el login
-};
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <SidebarMenu>
@@ -81,14 +78,20 @@ const handleLogout = () => {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link to="settings/profile" />} className="cursor-pointer">
+              <DropdownMenuItem
+                render={<Link to="settings/profile" />}
+                className="cursor-pointer"
+              >
                 <BadgeCheck />
                 Ajustes
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer"
+              >
                 <LogOut />
                 Cerrar sesión
               </DropdownMenuItem>

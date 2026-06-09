@@ -67,7 +67,7 @@ export const PasswordResetForm = ({ token }: { token: string }) => {
         placeholder="••••••••"
         leftIcon={Lock}
         rightIcon={showPassword ? EyeOff : Eye}
-        onRightIconClick={() => setShowPassword((v) => !v)}
+        onRightIconClick={() => setShowPassword((pass) => !pass)}
         error={errors.password?.message}
         {...register("password")}
       />
@@ -77,8 +77,8 @@ export const PasswordResetForm = ({ token }: { token: string }) => {
         type={showConfirm ? "text" : "password"}
         placeholder="••••••••"
         leftIcon={Lock}
-        rightIcon={showConfirm ? EyeOff : Eye}
-        onRightIconClick={() => setShowConfirm((v) => !v)}
+        rightIcon={showConfirm ? Eye : EyeOff}
+        onRightIconClick={() => setShowConfirm((pass) => !pass)}
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
