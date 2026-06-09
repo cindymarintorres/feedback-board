@@ -2,11 +2,14 @@ import { useReducer, useEffect } from "react";
 import type { ReactNode } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import {
-  AuthStateSchema,
   type AuthState,
   type AuthAction,
 } from "@/context/schemas/auth.context.schema";
 import { FullscreenSpinner } from "@/components/shared";
+import { useMutation } from "@tanstack/react-query";
+import { authService } from "@/services/authService";
+import type { LoginResponse } from "feedbackboard-shared";
+import { tokenStore } from "@/lib/tokenStore";
 
 // ─── Estado inicial vacío ─────────────────────────
 const initialState: AuthState = {
@@ -21,6 +24,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   console.log("🔄 Action:", action.type, action); // 👈
   switch (action.type) {
     case "LOGIN":
+      tokenStore.set(action.payload.token); // sincroniza Axios
       return {
         user: action.payload.user,
         token: action.payload.token,
@@ -28,6 +32,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isLoading: true, //siempre false al terminar
       };
     case "LOGOUT":
+      tokenStore.clear(); // limpia Axios
       return {
         user: null,
         token: null,
@@ -52,7 +57,25 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 // ─── El Provider ──────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(authReducer, initialState, () => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  const { mutate: triggerRefresh } = useMutation({
+    mutationFn: () => authService.refresh(),
+    onSuccess: (data: LoginResponse) => {
+      dispatch({
+        type: "LOGIN",
+        payload: { user: data.user, token: data.accessToken },
+      });
+    },
+    onError: () => {
+      dispatch({ type: "LOGOUT" }); // cookie expirada o inválida
+    },
+    onSettled: () => {
+      dispatch({ type: "SET_LOADING", payload: false });
+    },
+  });
+
+  /*const [state, dispatch] = useReducer(authReducer, initialState, () => {
     // Al arrancar revisa si había sesión guardada
     try {
       const token = localStorage.getItem("token");
@@ -71,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return initialState;
     }
   });
+  
 
   // Sincroniza localStorage cuando cambia el estado
   useEffect(() => {
@@ -82,6 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("user");
     }
   }, [state.token, state.user]);
+*/
+
+  useEffect(() => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    triggerRefresh(); // usa la referencia estable
+    //refreshMutation.mutate(); // llama a /auth/refresh con la cookie
+  }, [triggerRefresh]); // solo al montar
 
   useEffect(() => {
     const handleUnauthorized = () => {
