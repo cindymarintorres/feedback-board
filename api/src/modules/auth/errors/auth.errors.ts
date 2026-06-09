@@ -17,3 +17,21 @@ export class ExpiredTokenException extends HttpException {
     super('El token expiró, solicita uno nuevo', HttpStatus.BAD_REQUEST);
   }
 }
+
+export class MissingRefreshTokenException extends HttpException {
+  constructor() {
+    super(
+      'Refresh token requerido',
+      HttpStatus.UNAUTHORIZED,
+    );
+  }
+}
+
+export class InvalidRefreshTokenException extends HttpException {
+  constructor() {
+    super(
+      'Refresh token inválido',
+      HttpStatus.UNAUTHORIZED,
+    );
+  }
+}

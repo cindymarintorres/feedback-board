@@ -4,12 +4,14 @@ import {
   Get,
   Body,
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus,
   UsePipes,
   Query,
+  Res,
+  Req,
 } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
@@ -25,6 +27,9 @@ import type {
   ForgotPasswordDto,
 } from './schemas/auth.schema';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { getRefreshCookieOptions } from '../../common/helpers/cookie-options.helper';
+import { Request, Response } from 'express';
+import { MissingRefreshTokenException } from './errors/auth.errors';
 
 type RequestWithUser = { user: { id: string } };
 
@@ -35,19 +40,23 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(BaseLoginSchema))
-  async login(@Body() body: LoginDto) {
-    return this.authService.login(body); // Si falla, InvalidCredentialsException sube sola
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.login(body); // Si falla, InvalidCredentialsException sube sola
+
+    response.cookie('refresh_token', result.refreshToken, getRefreshCookieOptions());
+
+    return { accessToken: result.accessToken, user: result.user };
   }
 
-  /* @Post('logout')
-  @HttpCode(HttpStatus.OK)
+  @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout() {
-    // Para JWT, el logout suele manejarse en el cliente descartando el token.
-    // Si se requiere invalidación en el servidor, se puede usar Redis para blacklisting.
-    return { message: 'Cerrado sesión correctamente' };
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('refresh_token', getRefreshCookieOptions());
+    return { message: 'Sesión cerrada' };
   }
-*/
 
   @Post('register')
   register(@Body(new ZodValidationPipe(BaseRegisterSchema)) body: RegisterDto) {
@@ -56,7 +65,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req: RequestWithUser) {
+  getProfile(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.id);
   }
 
@@ -81,4 +90,22 @@ export class AuthController {
   async validateToken(@Query('token') token: string) {
     return this.authService.validateToken(token); // { valid: true } viene del servicio
   }
+
+  @Post('refresh')
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies?.['refresh_token'] as string | undefined;
+
+    if (!refreshToken) throw new MissingRefreshTokenException();
+
+    const result = await this.authService.refresh(refreshToken);
+
+    // renueva la cookie con cada refresh (rotation)
+    response.cookie('refresh_token', result.refreshToken, getRefreshCookieOptions());
+
+    return { accessToken: result.accessToken, user: result.user };
+  }
+
 }
