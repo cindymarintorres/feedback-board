@@ -16,7 +16,7 @@ const initialState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // true hasta que el refresh inicial resuelva
 };
 
 // ─── El guardia (reducer) ─────────────────────────
@@ -109,10 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 */
 
   useEffect(() => {
-    dispatch({ type: "SET_LOADING", payload: true });
-    triggerRefresh(); // usa la referencia estable
-    //refreshMutation.mutate(); // llama a /auth/refresh con la cookie
-  }, [triggerRefresh]); // solo al montar
+    triggerRefresh(); // intenta restaurar la sesión con la cookie HTTPOnly
+  }, [triggerRefresh]);
 
   useEffect(() => {
     const handleUnauthorized = () => {

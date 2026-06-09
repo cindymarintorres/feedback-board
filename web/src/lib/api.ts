@@ -14,6 +14,10 @@ api.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    // 🔑 [TokenStore] Access Token inyectado en: ${config.url}
+    console.debug(`🔑 [Auth] Token inyectado →`, config.url);
+  } else {
+    console.debug(`⚠️  [Auth] Sin token para →`, config.url);
   }
 
   return config;
@@ -58,9 +62,12 @@ api.interceptors.response.use(
       url.includes("/auth/reset-password");
 
     if (status === 401 && !isAuthRoute && !originalRequest._retry) {
+      console.warn(`🔒 [Auth] 401 recibido en "${url}" — intentando refresh silencioso...`);
+
       // Si ya hay un refresh en vuelo, encola la petición
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
+          console.debug(`⏳ [Auth] Petición encolada (refresh en progreso):`, url);
           pendingQueue.push({ resolve, reject });
         }).then((newToken) => {
           if (originalRequest.headers) {
@@ -75,10 +82,13 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        console.log(`🔄 [Auth] Solicitando nuevo Access Token → POST /auth/refresh`);
         const { data } = await api.post<{ accessToken: string }>(
           "/auth/refresh",
         );
         const newToken = data.accessToken;
+
+        console.log(`✅ [Auth] Nuevo Access Token recibido. Reintentando petición original: "${url}"`);
 
         // Guarda el nuevo token en memoria
         tokenStore.set(newToken);
@@ -93,6 +103,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         // El refresh también falló → sesión expirada de verdad
+        console.error(`❌ [Auth] Refresh fallido — cerrando sesión automáticamente.`);
         processPendingQueue(refreshError, null);
         tokenStore.clear();
         window.dispatchEvent(new Event("auth:unauthorized"));
