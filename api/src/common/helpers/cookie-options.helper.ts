@@ -7,7 +7,7 @@ export function getRefreshCookieOptions(): CookieOptions {
     httpOnly: true,                           // siempre — JS nunca puede leerla
     secure: isProd,                           // true en prod (HTTPS), false en dev (HTTP)
     sameSite: isProd ? 'strict' : 'lax',     // strict en prod, lax en dev
-    path: '/auth/refresh',                    // la cookie solo se envía a este endpoint
+    path: '/',                                // envía en todos los requests al origen
     maxAge: 7 * 24 * 60 * 60 * 1000,         // 7 días en ms
   };
 }

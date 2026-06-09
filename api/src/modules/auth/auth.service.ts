@@ -15,10 +15,10 @@ import type {
   LoginDto,
   ResetPasswordDto,
   ForgotPasswordDto,
+  AuthResult,
 } from './schemas/auth.schema';
 import type {
   PublicUser,
-  LoginResponse,
   JwtPayload,
 } from 'feedbackboard-shared';
 import { InjectQueue } from '@nestjs/bull';
@@ -52,7 +52,7 @@ export class AuthService {
     return publicUser;
   }
 
-  async login(loginDto: LoginDto): Promise<LoginResponse> {
+  async login(loginDto: LoginDto): Promise<AuthResult> {
     const authUser = await this.validateUser(loginDto.email, loginDto.password);
     const payload: JwtPayload = {
       id: authUser.id,
@@ -152,7 +152,7 @@ export class AuthService {
     return this.usersService.findById(userId);
   }
 
-  async refresh(refreshToken: string): Promise<LoginResponse> {
+  async refresh(refreshToken: string): Promise<AuthResult> {
     try {
       const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
