@@ -490,6 +490,25 @@ Prisma v7 usa `@prisma/adapter-pg` con un `Pool` de conexiones en lugar de la UR
 ### `dotenv-cli` para scripts de Prisma
 En lugar de duplicar el `.env` o hardcodear la URL, los scripts de Prisma usan `dotenv -e ../.env --` para cargar el `.env` raíz antes de ejecutar cualquier comando de Prisma. Mismo patrón que SupportFlow.
 
+### Arquitectura de Autenticación de Doble Token (Access + Refresh)
+Se ha implementado un sistema robusto de autenticación basado en el estándar de la industria:
+- **Access Token (Corta duración - 15m):** Viaja en el body (JSON) al iniciar sesión y se mantiene exclusivamente en memoria RAM en el frontend (`tokenStore`). Axios lo inyecta en cada petición como Bearer token.
+- **Refresh Token (Larga duración - 7d):** El backend lo emite dentro de una cookie `HttpOnly` y con `path: '/'`. Esto significa que el código JavaScript (frontend) **nunca** puede leer este token, lo cual protege la sesión contra ataques XSS (Cross-Site Scripting).
+
+### Extensión de Schemas de Zod para Uso Interno
+En el monorepo, `feedbackboard-shared` define el contrato estricto de lo que el frontend espera recibir (ej: `LoginResponseSchema` sin `refreshToken`).
+Sin embargo, internamente el servicio de autenticación de NestJS necesita manejar el `refreshToken` para inyectarlo en la cookie. En lugar de ensuciar el contrato compartido o usar tipos `any`, el backend *extiende* el schema de Zod (`AuthResultSchema = LoginResponseSchema.extend(...)`). Así, se mantiene un tipado estricto end-to-end respetando las fronteras entre cliente y servidor.
+
+### Reactividad vs Polling en el Refresh Token
+La renovación del access token no funciona mediante polling (temporizador cada X minutos). En su lugar, es **completamente reactiva**:
+1. El interceptor de Axios captura globalmente cualquier error `401 Unauthorized`.
+2. Pone en pausa las peticiones en vuelo mediante una cola de promesas (`pendingQueue`).
+3. Ejecuta silenciosamente `/auth/refresh` enviando la cookie.
+4. Con el nuevo Access Token en mano, reintenta todas las peticiones pausadas.
+5. Si el refresh también falla, desloguea al usuario de forma limpia.
+
+Esto garantiza un balance óptimo: no se satura al servidor con peticiones innecesarias cuando el usuario está inactivo, y la experiencia de uso es transparente y fluida. Para proyectos a gran escala y de extrema criticidad (banca, trading) se optaría por proactividad, pero para aplicaciones estándar como portafolios y SaaS B2B, este enfoque reactivo es el estándar de la industria.
+
 ## 📋 Estado del proyecto
 
 Este proyecto está en desarrollo activo como parte de un portafolio de ingeniería de software. La arquitectura, decisiones de diseño y progreso de implementación están documentados en el historial de commits.
