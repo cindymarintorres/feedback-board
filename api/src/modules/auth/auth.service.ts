@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'; // ← ya no importas BadRequest/Unauthorized
+import { Injectable, Logger } from '@nestjs/common'; // ← ya no importas BadRequest/Unauthorized
 import {
   InvalidCredentialsException,
   InvalidTokenException,
@@ -17,10 +17,7 @@ import type {
   ForgotPasswordDto,
   AuthResult,
 } from './schemas/auth.schema';
-import type {
-  PublicUser,
-  JwtPayload,
-} from 'feedbackboard-shared';
+import type { PublicUser, JwtPayload } from 'feedbackboard-shared';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ConfigService } from '@nestjs/config';
@@ -28,6 +25,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly logger = new Logger(AuthService.name),
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
@@ -118,20 +116,30 @@ export class AuthService {
       where: { token: dto.token },
     });
 
-    if (!resetRecord) throw new InvalidTokenException();
-    if (resetRecord.expiresAt < new Date()) throw new ExpiredTokenException();
+    if (!resetRecord) {
+      this.logger.warn(`resetPassword: token no encontrado`);
+      throw new InvalidTokenException();
+    }
+
+    if (resetRecord.expiresAt < new Date()) {
+      this.logger.warn(
+        `resetPassword: token expirado - userId: ${resetRecord.userId}`,
+      );
+      throw new InvalidTokenException();
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    await this.prisma.user.update({
-      where: { id: resetRecord.userId },
-      data: { password: hashedPassword },
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: resetRecord.userId },
+        data: { password: hashedPassword },
+      }),
+      this.prisma.passwordResetToken.delete({
+        where: { token: dto.token },
+      }),
+    ]);
 
-    await this.prisma.passwordResetToken.delete({
-      where: { token: dto.token },
-    });
-    // await this.mailService.sendPasswordChanged(user.email)
     return { message: 'Contraseña actualizada correctamente' };
   }
 
@@ -140,9 +148,16 @@ export class AuthService {
       where: { token },
     });
 
-    if (!record || record.expiresAt < new Date()) {
-      if (!record || record.expiresAt < new Date())
-        throw new InvalidTokenException();
+    if (!record) {
+      this.logger.warn(`validateToken: token no encontrado`);
+      throw new InvalidTokenException();
+    }
+
+    if (record.expiresAt < new Date()) {
+      this.logger.warn(
+        `validateToken: token expirado - userId: ${record.userId}`,
+      );
+      throw new InvalidTokenException();
     }
 
     return { valid: true };
