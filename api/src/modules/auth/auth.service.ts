@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common'; // ← ya no importas BadRe
 import {
   InvalidCredentialsException,
   InvalidTokenException,
-  ExpiredTokenException,
 } from './errors/auth.errors';
 
 import { JwtService } from '@nestjs/jwt';
@@ -24,8 +23,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
-    private readonly logger = new Logger(AuthService.name),
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
