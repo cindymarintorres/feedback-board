@@ -10,32 +10,35 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
+    ConfigModule.forRoot({ //Motor de configuraciones
       isGlobal: true,
       envFilePath: [
         path.resolve(__dirname, '../../../.env'), // local dev
-        '.env',                                    // fallback Docker
+        '.env', // fallback Docker
       ],
-      validate
+      validate,
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,  // 1 minuto en ms
-      limit: 100,  // 100 requests por ventana
-    }]),
-    BullModule.forRoot({
+    ThrottlerModule.forRoot([ //Motor de validacion de peticiones
+      {
+        ttl: 60000, // 1 minuto en ms
+        limit: 100, // 100 requests por ventana
+      },
+    ]),
+    BullModule.forRoot({ //Motor de colas
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     }),
-
+    ScheduleModule.forRoot(), //Motor de cronjobs
     PrismaModule,
     UsersModule,
     AuthModule,
-    MailModule
+    MailModule,
   ],
   providers: [
     {
