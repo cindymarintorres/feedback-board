@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 import type { LoginDto, LoginResponse } from "feedbackboard-shared";
+import { tokenStore } from "@/lib/tokenStore";
 
 export const useAuthActions = () => {
   const navigate = useNavigate();
@@ -15,7 +16,8 @@ export const useAuthActions = () => {
     onSuccess: (data: LoginResponse) => {
       dispatch({ type: "SET_LOADING", payload: true }); // spinner ON
 
-      // Le decimos al guardia: "escribe esto en la pizarra"
+      tokenStore.set(data.accessToken); //← interceptor ya puede leer el token
+
       dispatch({
         type: "LOGIN",
         payload: { user: data.user, token: data.accessToken },
@@ -35,12 +37,15 @@ export const useAuthActions = () => {
   // ─── Logout ───────────────────────────────────────
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
+    onMutate: () => {
+      dispatch({ type: "SET_LOADING", payload: true }); // spinner ON inmediato
+    },
     onSettled: () => {
-      // onSettled corre tanto si éxito como si falla
-      // así el usuario siempre queda deslogueado del lado cliente
-      queryClient.clear(); // limpia cache de react-query
-      dispatch({ type: "LOGOUT" });
-      navigate("/login");
+      queryClient.clear();
+      setTimeout(() => {
+        dispatch({ type: "LOGOUT" }); // spinner OFF aquí
+        navigate("/login");
+      }, 800);
     },
   });
 
