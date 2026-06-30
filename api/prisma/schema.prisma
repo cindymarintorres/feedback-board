@@ -14,6 +14,7 @@ datasource db {
 
 enum Role {
   ADMIN
+  COMMERCE_ADMIN
   MEMBER
 }
 
@@ -24,12 +25,10 @@ enum Category {
   OTHER
 }
 
-enum SuggestionStatus {
-  PENDING
-  UNDER_REVIEW
-  IN_PROGRESS
-  COMPLETED
-  REJECTED
+enum VoteType {
+  GOOD
+  REGULAR
+  BAD
 }
 
 model User {
@@ -52,6 +51,7 @@ model User {
   suggestions         Suggestion[]
   votes               Vote[]
   passwordResetTokens PasswordResetToken[]
+  ownedCommerces      Commerce[]
 
   @@index([email])
   @@index([role])
@@ -69,21 +69,39 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model Commerce {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  logoUrl     String?
+  ownerId     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  owner       User         @relation(fields: [ownerId], references: [id])
+  suggestions Suggestion[]
+
+  @@index([slug])
+  @@index([ownerId])
+  @@map("commerces")
+}
+
 model Suggestion {
-  id          String           @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String
   category    Category
-  status      SuggestionStatus @default(PENDING)
   authorId    String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  author      User             @relation(fields: [authorId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User      @relation(fields: [authorId], references: [id])
   votes       Vote[]
+  commerceId  String?
+  commerce    Commerce? @relation(fields: [commerceId], references: [id])
 
   @@index([authorId])
-  @@index([status])
   @@index([category])
+  @@index([commerceId])
   @@map("suggestions")
 }
 
@@ -94,6 +112,7 @@ model Vote {
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id])
   suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
+  type         VoteType   @default(GOOD)
 
   @@unique([userId, suggestionId])
   @@index([suggestionId])

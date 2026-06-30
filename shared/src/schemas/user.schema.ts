@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const Roles = ["ADMIN", "MEMBER"] as const;
+export const Roles = ["ADMIN", "MEMBER", "COMMERCE_ADMIN"] as const;
 
 export const UserRoleSchema = z.enum(Roles, {
   message: "Rol de usuario inválido",
