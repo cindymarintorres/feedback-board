@@ -4,7 +4,7 @@ Plataforma de feedback y votación para productos, similar a Canny.io pero open 
 
 Los usuarios registrados envían sugerencias de mejora, votan las que más les interesan, y reciben notificaciones por email cuando el admin cambia el estado de su sugerencia. El admin gestiona el board, modera sugerencias y actualiza estados desde un dashboard privado.
 
-**Dos roles:** Admin y Member. Ambos se autentican con JWT.
+**Tres roles:** Admin, Commerce Admin y Member. Todos se autentican con JWT.
 
 ---
 
@@ -37,141 +37,53 @@ Los usuarios registrados envían sugerencias de mejora, votan las que más les i
 ```feedbackboard/
 ├── api/                                      # Backend NestJS
 │   ├── prisma/
-│   │   ├── migrations/
-│   │   │   ├── 20260505215821_init/
-│   │   │   │   └── migration.sql
-│   │   │   ├── 20260507222108_change_field/
-│   │   │   │   └── migration.sql
-│   │   │   └── migration_lock.toml
-│   │   └── schema.prisma
 │   ├── src/
 │   │   ├── common/
 │   │   │   ├── decorators/
-│   │   │   │   └── role.decorator.ts
 │   │   │   ├── guards/
-│   │   │   │   ├── jwt-auth.guard.ts
-│   │   │   │   └── roles.guard.ts
 │   │   │   ├── pipes/
-│   │   │   │   └── zod-validation.pipe.ts
 │   │   │   └── strategies/
-│   │   │       └── jwt.strategy.ts
 │   │   ├── config/
-│   │   │   └── env.ts
 │   │   ├── modules/
 │   │   │   ├── auth/
-│   │   │   │   └── schemas/
-│   │   │   │       └── auth.schema.ts
 │   │   │   └── users/
-│   │   │       ├── schemas/
-│   │   │       │   └── user.schema.ts
-│   │   │       ├── users.controller.ts
-│   │   │       ├── users.module.ts
-│   │   │       └── users.service.ts
 │   │   ├── prisma/
-│   │   │   ├── prisma.module.ts
-│   │   │   └── prisma.service.ts
-│   │   ├── app.module.ts
-│   │   └── main.ts
 │   ├── generated/
 │   │   └── prisma/                           # Prisma generado
-│   ├── package.json
-│   ├── prisma.config.ts
-│   ├── tsconfig.json
-│   └── tsconfig.build.json
 │
 ├── web/                                      # Frontend React + Vite
 │   ├── public/
-│   │   ├── feedback-loop.png
-│   │   ├── layout-dashboard.svg
-│   │   └── rating.png
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── providers/
-│   │   │   │   └── AppProviders.tsx
 │   │   │   └── router/
-│   │   │       └── AppRouter.tsx
 │   │   ├── assets/
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   └── vite.svg
 │   │   ├── components/
 │   │   │   ├── layout/
-│   │   │   │   └── AuthLayout.tsx
 │   │   │   ├── shared/
-│   │   │   │   ├── AppButton.tsx
-│   │   │   │   ├── AppInput.tsx
-│   │   │   │   └── ThemeToggle.tsx
 │   │   │   └── ui/
-│   │   │       ├── alert-dialog.tsx
-│   │   │       ├── alert.tsx
-│   │   │       ├── badge.tsx
-│   │   │       ├── button.tsx
-│   │   │       ├── card.tsx
-│   │   │       ├── input.tsx
-│   │   │       └── label.tsx
 │   │   ├── config/
-│   │   │   └── env.ts
 │   │   ├── context/
-│   │   │   └── AuthContext.tsx
 │   │   ├── features/
 │   │   │   ├── admin/
-│   │   │   │   └── pages/
 │   │   │   ├── auth/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── LoginForm.tsx
-│   │   │   │   │   └── RegisterForm.tsx
-│   │   │   │   ├── pages/
-│   │   │   │   │   ├── LoginPage.tsx
-│   │   │   │   │   └── RegisterPage.tsx
-│   │   │   │   └── schemas/
-│   │   │   │       └── auth.schema.ts
 │   │   │   ├── board/
-│   │   │   │   └── pages/
-│   │   │   │       └── BoardPage.tsx
+│   │   │   ├── suggestions/
 │   │   │   └── votes/
-│   │   │       └── pages/
 │   │   ├── hooks/
-│   │   │   ├── useLogin.ts
-│   │   │   ├── useRegister.ts
-│   │   │   └── useSocket.ts
 │   │   ├── lib/
-│   │   │   ├── api.ts
-│   │   │   └── utils.ts
 │   │   ├── services/
-│   │   │   └── authService.ts
 │   │   ├── store/
-│   │   │   └── boardStore.ts
-│   │   ├── App.tsx
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── components.json
-│   ├── index.html
-│   ├── package.json
-│   ├── tsconfig.app.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   └── vite.config.ts
 │
 ├── shared/                                   # Paquete compartido
 │   ├── src/
 │   │   ├── schemas/
-│   │   │   ├── auth.schema.ts
-│   │   │   ├── suggestions.schema.ts
-│   │   │   ├── user.schema.ts
-│   │   │   └── vote.schema.ts
-│   │   └── index.ts
-│   ├── package.json
-│   └── tsconfig.json
 │
 ├── docker/                                   # Dockerfiles
 │   ├── api/
 │   │   └── Dockerfile
 │   └── web/
 │       └── Dockerfile
-│
-├── .env
-├── .env.example
-├── .gitignore
 ├── docker-compose.yaml
 └── README.md
 
@@ -238,119 +150,27 @@ Users (Admin only)
   PATCH  /api/users/:id
   DELETE /api/users/:id
 
+Commerces
+  GET    /api/commerces                  # Admin: todos | Commerce Admin: los propios
+  GET    /api/commerces/:id              # Admin + Commerce Admin
+  GET    /api/commerces/slug/:slug       # Público — usado por /feedback/:slug
+  POST   /api/commerces                  # Admin only
+  PATCH  /api/commerces/:id              # Admin + Commerce Admin (solo el propio)
+  DELETE /api/commerces/:id              # Admin only
+
 Suggestions
-  GET    /api/suggestions            # filtros: category, status, order
+  GET    /api/suggestions                # filtros: category, commerceId, order
   GET    /api/suggestions/:id
-  POST   /api/suggestions            # Member + Admin
-  PATCH  /api/suggestions/:id/status # Admin only
-  DELETE /api/suggestions/:id        # Admin o author
+  POST   /api/suggestions                # Member — requiere commerceId
+  DELETE /api/suggestions/:id            # Admin o author
 
 Votes
-  POST   /api/votes/:suggestionId    # toggle — vota o quita el voto
-  GET    /api/votes/my               # mis votos
+  POST   /api/votes/:suggestionId        # toggle con tipo: GOOD | REGULAR | BAD
+  GET    /api/votes/my                   # mis votos
 
 Health
   GET    /api/health
 ```
----
-## El flujo completo de registro + autologin
-
-```
-Usuario llena el form
-  → POST /auth/register   (sin JWT — ruta pública)
-  → AuthService llama UsersService.create()
-  → Usuario creado en DB
-  → Frontend hace POST /auth/login con las mismas credenciales
-  → Recibe el JWT
-  → dispatch LOGIN al AuthContext
-  → navigate('/board')
-
-```
-
----
-
-## Flujo principal — cambio de estado con notificación
-
-```
-Admin cambia estado de una sugerencia
-  → PATCH /api/suggestions/:id/status
-  → SuggestionsService actualiza en DB
-  → Agrega job a la cola de BullMQ (mail.queue)
-  → NotificationsGateway emite evento via WebSocket al board
-  → MailProcessor procesa el job de forma asíncrona
-  → MailService envía email al autor via Mailpit
-  → El autor ve la notificación en tiempo real en el board
-```
-
----
-
-## Schema de base de datos (Prisma)
-
-```prisma
-model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
-  passwordHash String
-  name         String
-  role         Role         @default(MEMBER)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  suggestions  Suggestion[]
-  votes        Vote[]
-
-  @@index([email])
-}
-
-enum Role {
-  ADMIN
-  MEMBER
-}
-
-model Suggestion {
-  id          String           @id @default(uuid())
-  title       String
-  description String
-  category    Category
-  status      SuggestionStatus @default(PENDING)
-  authorId    String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  author      User             @relation(fields: [authorId], references: [id])
-  votes       Vote[]
-
-  @@index([authorId])
-  @@index([status])
-  @@index([category])
-}
-
-enum Category {
-  FEATURE
-  BUG
-  IMPROVEMENT
-  OTHER
-}
-
-enum SuggestionStatus {
-  PENDING
-  UNDER_REVIEW
-  IN_PROGRESS
-  COMPLETED
-  REJECTED
-}
-
-model Vote {
-  id           String     @id @default(uuid())
-  userId       String
-  suggestionId String
-  createdAt    DateTime   @default(now())
-  user         User       @relation(fields: [userId], references: [id])
-  suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
-
-  @@unique([userId, suggestionId])
-  @@index([suggestionId])
-}
-```
-
 ---
 
 ## Notas de setup — problemas conocidos y soluciones
@@ -508,6 +328,27 @@ La renovación del access token no funciona mediante polling (temporizador cada 
 5. Si el refresh también falla, desloguea al usuario de forma limpia.
 
 Esto garantiza un balance óptimo: no se satura al servidor con peticiones innecesarias cuando el usuario está inactivo, y la experiencia de uso es transparente y fluida. Para proyectos a gran escala y de extrema criticidad (banca, trading) se optaría por proactividad, pero para aplicaciones estándar como portafolios y SaaS B2B, este enfoque reactivo es el estándar de la industria.
+
+### Tres roles de usuario: ADMIN, COMMERCE_ADMIN, MEMBER
+En lugar del modelo binario Admin/Member original, se adoptó un modelo de tres niveles. El `ADMIN` es el superadmin de la plataforma — crea y elimina comercios. El `COMMERCE_ADMIN` es el dueño de un comercio específico — solo ve y edita el suyo. El `MEMBER` es el usuario final que vota y sugiere. Esta separación evita que un admin de un ecommerce vea información confidencial de otros.
+
+### Commerce como entidad central
+Las sugerencias y votos pertenecen siempre a un comercio (`commerceId`), no flotan como entidades globales. Cada comercio tiene un `slug` único que determina su URL pública (`/feedback/:slug`). El `feedbackUrl` se construye en el service (no en el controller) concatenando `WEB_URL` + `ROUTES.feedback` + `slug`, siguiendo el mismo patrón que `sendPasswordReset`.
+
+### Sugerencias sin ciclo de vida
+Se eliminó `SuggestionStatus` del modelo. Una sugerencia es un registro histórico inmutable — se crea, se vota, y queda. No tiene estados ni flujo de moderación. Simplifica el modelo de datos y evita lógica de negocio innecesaria para el caso de uso actual.
+
+### Votos con rating de 3 valores
+El voto no es binario (votó / no votó) sino un rating: `GOOD`, `REGULAR` o `BAD`. Permite al admin del comercio ver distribución de satisfacción, no solo conteo. El toggle sigue funcionando — si ya votaste puedes cambiar el tipo o quitar el voto.
+
+### Endpoint público /commerces/slug/:slug con @Public()
+El endpoint que resuelve un comercio por slug es público (sin JWT) para permitir que `/feedback/:slug` muestre el nombre del comercio antes del login. Se implementó un decorator `@Public()` + ajuste en `JwtAuthGuard.canActivate()` para saltear la validación de token en endpoints marcados, sin afectar el resto de la cadena de guards.
+
+### Sincronización del paquete shared con file: linking
+Con `file:../shared` y pnpm, los cambios en `shared/dist` no se propagan automáticamente al `api` ni al `web`. El flujo correcto tras cada build del shared es:
+```bash
+rm -rf node_modules/.pnpm/feedbackboard-shared@* && pnpm install
+```
 
 ## 📋 Estado del proyecto
 
