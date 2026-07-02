@@ -46,6 +46,8 @@ Los usuarios registrados envían sugerencias de mejora, votan las que más les i
 │   │   ├── config/
 │   │   ├── modules/
 │   │   │   ├── auth/
+│   │   │   ├── suggestions/
+│   │   │   ├── votes/
 │   │   │   └── users/
 │   │   ├── prisma/
 │   ├── generated/
@@ -65,7 +67,6 @@ Los usuarios registrados envían sugerencias de mejora, votan las que más les i
 │   │   ├── config/
 │   │   ├── context/
 │   │   ├── features/
-│   │   │   ├── admin/
 │   │   │   ├── auth/
 │   │   │   ├── board/
 │   │   │   ├── suggestions/
@@ -165,8 +166,9 @@ Suggestions
   DELETE /api/suggestions/:id            # Admin o author
 
 Votes
-  POST   /api/votes/:suggestionId        # toggle con tipo: GOOD | REGULAR | BAD
-  GET    /api/votes/my                   # mis votos
+  POST   /api/suggestions/:suggestionId/votes    # Member — emitir voto (GOOD | REGULAR | BAD)
+  PATCH  /api/suggestions/:suggestionId/votes    # Member — cambiar tipo de voto
+  DELETE /api/suggestions/:suggestionId/votes    # Member — quitar voto
 
 Health
   GET    /api/health
@@ -344,11 +346,14 @@ El voto no es binario (votó / no votó) sino un rating: `GOOD`, `REGULAR` o `BA
 ### Endpoint público /commerces/slug/:slug con @Public()
 El endpoint que resuelve un comercio por slug es público (sin JWT) para permitir que `/feedback/:slug` muestre el nombre del comercio antes del login. Se implementó un decorator `@Public()` + ajuste en `JwtAuthGuard.canActivate()` para saltear la validación de token en endpoints marcados, sin afectar el resto de la cadena de guards.
 
-### Sincronización del paquete shared con file: linking
-Con `file:../shared` y pnpm, los cambios en `shared/dist` no se propagan automáticamente al `api` ni al `web`. El flujo correcto tras cada build del shared es:
-```bash
-rm -rf node_modules/.pnpm/feedbackboard-shared@* && pnpm install
-```
+### `commerceId` requerido en Suggestion
+Toda sugerencia pertenece obligatoriamente a un comercio. La URL pública (`/feedback/:slug`) siempre tiene el contexto del comercio, por lo que una sugerencia sin comercio carece de sentido en el modelo de negocio. El campo `commerceId` es `String` (no nullable) en el schema de Prisma.
+
+### Acceso al feedback board requiere autenticación (Opción B)
+Los usuarios deben registrarse e iniciar sesión para ver, crear y votar sugerencias. Se descartó el acceso anónimo para garantizar integridad del voto — el constraint `@@unique([userId, suggestionId])` en la DB lo enforce. La fricción de registro se mitiga mostrando un modal de login/registro inline en la propia página `/feedback/:slug`, sin redirigir al usuario fuera del contexto del comercio.
+
+### Votos como recurso anidado bajo suggestions
+Los endpoints de votos viven bajo `/suggestions/:suggestionId/votes` (REST anidado) en lugar de `/votes`. Como un voto no tiene identidad propia visible (el usuario solo puede tener uno por sugerencia), no se necesita un ID de voto en las rutas — el par `userId + suggestionId` actúa como clave compuesta para `PATCH` y `DELETE`.
 
 ## 📋 Estado del proyecto
 
