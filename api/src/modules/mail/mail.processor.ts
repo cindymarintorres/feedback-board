@@ -25,7 +25,7 @@ export class MailProcessor {
 
     this.logger.log(`Email de reset enviado a ${email}`);
   }
-  
+
   @Process('welcome')
   async handleWelcome(job: Job<RegisterDto>): Promise<void> {
     const { email, name } = job.data;
@@ -34,5 +34,25 @@ export class MailProcessor {
     await this.mailService.sendWelcome(email, name);
 
     this.logger.log(`Email de bienvenida enviado a ${email}`);
+  }
+
+  @Process('suggestion-created')
+  async handleSuggestionCreated(
+    job: Job<{ email: string; name: string; title: string }>,
+  ): Promise<void> {
+    const { email, name, title } = job.data;
+    this.logger.log(`Enviando email de sugerencia a ${email}`);
+    await this.mailService.sendSuggestionCreated(email, name, title);
+    this.logger.log(`Email de sugerencia enviado a ${email}`);
+  }
+
+  @Process('vote-created')
+  async handleVoteCreated(
+    job: Job<{ email: string; name: string; type: string }>,
+  ): Promise<void> {
+    const { email, name, type } = job.data;
+    this.logger.log(`Enviando email de voto a ${email}`);
+    await this.mailService.sendVoteCreated(email, name, type);
+    this.logger.log(`Email de voto enviado a ${email}`);
   }
 }

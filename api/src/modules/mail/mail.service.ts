@@ -10,7 +10,7 @@ export class MailService {
     private readonly config: ConfigService,
   ) {}
 
-  private readonly logger = new Logger(MailService.name)
+  private readonly logger = new Logger(MailService.name);
 
   async sendPasswordReset(email: string, token: string): Promise<void> {
     const webUrl = this.config.getOrThrow<string>('WEB_URL');
@@ -25,9 +25,7 @@ export class MailService {
       });
 
       this.logger.log(`✅ Password reset email enviado a ${email}`);
-
     } catch (error) {
-
       this.logger.error('❌ Error enviando password reset email', error);
       throw error;
     }
@@ -47,6 +45,44 @@ export class MailService {
       this.logger.log(`✅ Welcome email enviado a ${email}`);
     } catch (error) {
       this.logger.error('❌ Error enviando welcome email', error);
+      throw error;
+    }
+  }
+
+  async sendSuggestionCreated(
+    email: string,
+    name: string,
+    title: string,
+  ): Promise<void> {
+    try {
+      await this.mailer.sendMail({
+        to: email,
+        subject: 'Tu sugerencia fue enviada — FeedbackBoard',
+        template: 'suggestion-created',
+        context: { name, title },
+      });
+      this.logger.log(`✅ Suggestion email enviado a ${email}`);
+    } catch (error) {
+      this.logger.error('❌ Error enviando suggestion email', error);
+      throw error;
+    }
+  }
+
+  async sendVoteCreated(
+    email: string,
+    name: string,
+    type: string,
+  ): Promise<void> {
+    try {
+      await this.mailer.sendMail({
+        to: email,
+        subject: 'Tu voto fue registrado — FeedbackBoard',
+        template: 'vote-created',
+        context: { name, type },
+      });
+      this.logger.log(`✅ Vote email enviado a ${email}`);
+    } catch (error) {
+      this.logger.error('❌ Error enviando vote email', error);
       throw error;
     }
   }
