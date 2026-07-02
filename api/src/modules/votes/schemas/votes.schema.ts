@@ -1,0 +1,1 @@
+export type { CreateVoteDto, UpdateVoteDto, VoteType } from 'feedbackboard-shared'

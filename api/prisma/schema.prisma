@@ -96,8 +96,8 @@ model Suggestion {
   updatedAt   DateTime  @updatedAt
   author      User      @relation(fields: [authorId], references: [id])
   votes       Vote[]
-  commerceId  String?
-  commerce    Commerce? @relation(fields: [commerceId], references: [id])
+  commerceId  String
+  commerce    Commerce @relation(fields: [commerceId], references: [id])
 
   @@index([authorId])
   @@index([category])
