@@ -58,28 +58,19 @@ model User {
   @@map("users")
 }
 
-model PasswordResetToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@map("password_reset_tokens")
-}
-
 model Commerce {
-  id          String       @id @default(uuid())
-  name        String
-  slug        String       @unique
-  description String?
-  logoUrl     String?
-  ownerId     String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  owner       User         @relation(fields: [ownerId], references: [id])
-  suggestions Suggestion[]
+  id                 String                      @id @default(uuid())
+  name               String
+  slug               String                      @unique
+  description        String?
+  logoUrl            String?
+  ownerId            String
+  verified           Boolean                     @default(false)
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  owner              User                        @relation(fields: [ownerId], references: [id])
+  suggestions        Suggestion[]
+  verificationTokens CommerceVerificationToken[]
 
   @@index([slug])
   @@index([ownerId])
@@ -87,14 +78,14 @@ model Commerce {
 }
 
 model Suggestion {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
   description String
   category    Category
   authorId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  author      User      @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
   votes       Vote[]
   commerceId  String
   commerce    Commerce @relation(fields: [commerceId], references: [id])
@@ -117,4 +108,26 @@ model Vote {
   @@unique([userId, suggestionId])
   @@index([suggestionId])
   @@map("votes")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+model CommerceVerificationToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  commerceId String
+  commerce   Commerce @relation(fields: [commerceId], references: [id])
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("commerce_verification_tokens")
 }
