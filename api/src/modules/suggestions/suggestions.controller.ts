@@ -43,6 +43,7 @@ export class SuggestionsController {
       commerceId,
       currentUser.id,
       category,
+      currentUser.role,
       order,
     );
   }

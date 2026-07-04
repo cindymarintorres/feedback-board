@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CommerceNotFoundForSuggestionException,
@@ -7,6 +7,7 @@ import {
 import { CreateSuggestionDto, Category } from './schemas/suggestions.schema';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { UserRole, UserRoleValues } from 'feedbackboard-shared';
 
 @Injectable()
 export class SuggestionsService {
@@ -17,17 +18,33 @@ export class SuggestionsService {
     @InjectQueue('mail') private readonly mailQueue: Queue, // Cola
   ) {}
 
+  maskName(fullName: string): string {
+    const [first, ...rest] = fullName.trim().split(/\s+/);
+    const lastInitial = rest.length ? ` ${rest[rest.length - 1][0]}.` : '';
+    return `${first}${lastInitial}`;
+  }
+  
   async findByCommerce(
     commerceId: string,
     currentUserId: string,
     category: string,
+    currentUserRole: UserRole,
     order: string,
   ) {
+
     const commerce = await this.prisma.commerce.findUnique({
       where: { id: commerceId },
-      select: { id: true },
+      select: { id: true, ownerId: true },
     });
+
     if (!commerce) throw new CommerceNotFoundForSuggestionException(commerceId);
+
+    if (
+      currentUserRole === UserRoleValues.COMMERCE_ADMIN &&
+      commerce.ownerId !== currentUserId
+    ) {
+      throw new ForbiddenException('No tienes acceso a este comercio');
+    }
 
     const suggestions = await this.prisma.suggestion.findMany({
       where: {
@@ -84,7 +101,7 @@ export class SuggestionsService {
       where: { id: authorId },
       select: { email: true, name: true },
     });
-    
+
     if (author) {
       await this.mailQueue.add('suggestion-created', {
         email: author.email,
