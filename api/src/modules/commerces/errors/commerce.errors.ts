@@ -14,3 +14,15 @@ export class SlugAlreadyInUseException extends HttpException {
     super('El slug ingresado ya se encuentra en uso', HttpStatus.CONFLICT);
   }
 }
+
+export class CommerceVerificationTokenNotFoundException extends HttpException {
+  constructor() {
+    super('Token de verificación inválido', HttpStatus.NOT_FOUND);
+  }
+}
+
+export class CommerceVerificationTokenExpiredException extends HttpException {
+  constructor() {
+    super('El token de verificación ha expirado', HttpStatus.GONE);
+  }
+}
