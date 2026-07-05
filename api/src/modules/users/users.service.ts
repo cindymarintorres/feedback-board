@@ -12,6 +12,7 @@ import {
   UpdatePasswordDto,
   AdminResetPasswordDto,
 } from './schemas/user.schema';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -46,11 +47,12 @@ export class UsersService {
     });
   }
 
-  async create(data: CreateUserDto) {
-    const existingUser = await this.findByEmail(data.email);
+  async create(data: CreateUserDto, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+    const existingUser = await this.findByEmail(data.email); //
     if (existingUser) throw new EmailAlreadyInUseException();
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await this.prisma.user.create({
+    const user = await client.user.create({
       data: { ...data, password: hashedPassword },
       omit: { password: true },
     });
@@ -107,4 +109,5 @@ export class UsersService {
 
     return { success: true };
   }
+  
 }
