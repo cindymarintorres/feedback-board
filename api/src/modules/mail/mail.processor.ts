@@ -55,4 +55,14 @@ export class MailProcessor {
     await this.mailService.sendVoteCreated(email, name, type);
     this.logger.log(`Email de voto enviado a ${email}`);
   }
+
+  @Process('commerce-verify')
+  async handleCommerceVerify(
+    job: Job<{ email: string; name: string; commerceName: string; token: string }>,
+  ): Promise<void> {
+    const { email, name, commerceName, token } = job.data;
+    this.logger.log(`Enviando email de verificación de comercio a ${email}`);
+    await this.mailService.sendCommerceVerification(email, name, commerceName, token);
+    this.logger.log(`Email de verificación de comercio enviado a ${email}`);
+  }
 }

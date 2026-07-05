@@ -86,4 +86,27 @@ export class MailService {
       throw error;
     }
   }
+
+  async sendCommerceVerification(
+    email: string,
+    name: string,
+    commerceName: string,
+    token: string,
+  ): Promise<void> {
+    const webUrl = this.config.getOrThrow<string>('WEB_URL');
+    const verifyUrl = `${webUrl}${ROUTES.commerces.verifyCommerce}?token=${token}`;
+
+    try {
+      await this.mailer.sendMail({
+        to: email,
+        subject: 'Verifica tu comercio — FeedbackBoard',
+        template: 'commerce-verify',
+        context: { name, commerceName, verifyUrl },
+      });
+      this.logger.log(`✅ Commerce verification email enviado a ${email}`);
+    } catch (error) {
+      this.logger.error('❌ Error enviando commerce verification email', error);
+      throw error;
+    }
+  }
 }
