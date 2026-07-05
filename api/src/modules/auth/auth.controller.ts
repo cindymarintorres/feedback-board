@@ -19,6 +19,7 @@ import {
   BaseLoginSchema,
   BaseForgotPasswordSchema,
   BaseResetPasswordSchema,
+  BaseRegisterCommerceSchema
 } from 'feedbackboard-shared';
 import type {
   RegisterDto,
@@ -30,6 +31,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { getRefreshCookieOptions } from '../../common/helpers/cookie-options.helper';
 import { Request, Response } from 'express';
 import { MissingRefreshTokenException } from './errors/auth.errors';
+import { RegisterCommerceDto } from '../commerces/schemas/commerce.schema';
 
 type RequestWithUser = { user: { id: string } };
 
@@ -108,4 +110,21 @@ export class AuthController {
     return { accessToken: result.accessToken, user: result.user };
   }
 
+  @Post('register-commerce')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(BaseRegisterCommerceSchema))
+  async registerCommerce(
+    @Body() body: RegisterCommerceDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.registerCommerce(body);
+    response.cookie('refresh_token', result.refreshToken, getRefreshCookieOptions());
+    return { accessToken: result.accessToken, user: result.user };
+  }
+
+  @Get('verify-commerce')
+  @HttpCode(HttpStatus.OK)
+  async verifyCommerce(@Query('token') token: string) {
+    return this.authService.verifyCommerce(token);
+  }
 }

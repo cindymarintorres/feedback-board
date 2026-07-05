@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { MailModule } from '../mail/mail.module';
 import { TokenCleanupService } from './token-cleanup.service';
+import { CommercesModule } from '../commerces/commerces.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TokenCleanupService } from './token-cleanup.service';
     PassportModule,
     MailModule,                                    // Modulo de Mail
     BullModule.registerQueue({ name: 'mail' }),    // Modulo Bull/Colas
+    CommercesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({

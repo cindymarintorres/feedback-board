@@ -20,6 +20,8 @@ import type { PublicUser, JwtPayload } from 'feedbackboard-shared';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ConfigService } from '@nestjs/config';
+import { CommercesService } from '../commerces/commerces.service';
+import { RegisterCommerceDto } from '../commerces/schemas/commerce.schema';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +32,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     @InjectQueue('mail') private readonly mailQueue: Queue, // Cola
+    private readonly commercesService: CommercesService
   ) {}
 
   async validateUser(
@@ -197,5 +200,28 @@ export class AuthService {
     } catch {
       throw new InvalidTokenException();
     }
+  }
+
+  async registerCommerce(dto: RegisterCommerceDto): Promise<AuthResult> {
+    const { user } = await this.commercesService.registerWithOwner(dto);
+
+    const payload: JwtPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshOptions = {
+      secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') ?? '',
+      expiresIn: (this.configService.get<string>('REFRESH_TOKEN_EXPIRE_IN') ??
+        '7d') as any,
+    };
+    const refreshToken = this.jwtService.sign(payload, refreshOptions);
+
+    return { accessToken, refreshToken, user };
+  }
+
+  async verifyCommerce(token: string) {
+    return this.commercesService.verifyCommerce(token);
   }
 }
