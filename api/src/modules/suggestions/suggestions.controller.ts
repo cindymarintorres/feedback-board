@@ -57,6 +57,7 @@ export class SuggestionsController {
   findOne(@Param('id') id: string) {
     return this.suggestionsService.findById(id);
   }
+  
   @Post()
   @Roles(UserRoleValues.MEMBER)
   create(

@@ -114,7 +114,8 @@ export class CommercesService {
     const { commerceName, commerceDescription, ...userData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      const user = await this.usersService.create(userData, tx);
+
+      const user = await this.usersService.create(userData, tx, 'COMMERCE_ADMIN');
 
       let slug = this.generateSlug(commerceName);
       let existing = await tx.commerce.findUnique({ where: { slug } });
