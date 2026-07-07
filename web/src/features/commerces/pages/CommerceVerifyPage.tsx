@@ -1,58 +1,66 @@
 import { useEffect } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router";
-import { toast } from "sonner";
+import { useSearchParams, useNavigate } from "react-router";
 import { useCommerceActions } from "@/features/commerces/hooks/useCommerceActions";
+import { useAuth } from "@/hooks/useAuth";
+import { AppButton, FullscreenSpinner } from "@/components/shared";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 export function CommerceVerifyPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? undefined;
   const navigate = useNavigate();
+  const { state } = useAuth();
 
   const { verifyCommerceQuery } = useCommerceActions(token);
-  const { isLoading, isSuccess, isError, data } = verifyCommerceQuery;
+const { isLoading, isSuccess, isError } = verifyCommerceQuery;
 
   useEffect(() => {
-    if (isSuccess) {
-      toast.success(data.message);
-      setTimeout(() => navigate("/login"), 1500);
-    }
-    if (isError) {
-      toast.error(
-        "El enlace expiró o es inválido. Contacta soporte para reenviar la verificación.",
-      );
-    }
-  }, [isSuccess, isError, data, navigate]);
+    // Espera a que la query de verificación Y el auth refresh inicial resuelvan
+    if (!isSuccess || state.isLoading) return;
+    const target = state.isAuthenticated ? "/board" : "/login";
+    setTimeout(() => navigate(target), 1500);
+  }, [isSuccess, state.isLoading, state.isAuthenticated, navigate]);
+
+  if (isLoading || !token) return <FullscreenSpinner />;
+
+  if (isError) {
+    return (
+      <Dialog open>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enlace inválido o expirado</DialogTitle>
+            <DialogDescription>
+              El enlace de verificación ya no es válido, expiró o ya fue
+              utilizado. Contacta soporte para reenviar la verificación.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <AppButton type="button" onClick={() => navigate("/login")}>
+              Ir a iniciar sesión
+            </AppButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl md:text-2xl text-primary">
-          Verificación de comercio
-        </CardTitle>
-        {isLoading && (
-          <CardDescription>Verificando tu comercio...</CardDescription>
-        )}
-      </CardHeader>
-      <CardContent className="text-center space-y-4">
-        {isSuccess && <p>{data.message} Redirigiendo al login...</p>}
-        {isError && (
-          <>
-            <p className="text-destructive text-sm">
-              No pudimos verificar tu comercio.
-            </p>
-            <Link to="/login" className="text-primary hover:underline">
-              Ir a iniciar sesión
-            </Link>
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <Dialog open>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Comercio verificado</DialogTitle>
+          <DialogDescription>
+            Tu comercio fue verificado correctamente. Te redirigiremos en un
+            momento...
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 }
