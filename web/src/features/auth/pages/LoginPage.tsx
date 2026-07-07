@@ -27,7 +27,7 @@ export function LoginPage() {
         <div className='text-center p-3 font-medium'>
           <p className="text-sm text-muted-foreground">
           ¿No tienes cuenta?{' '}
-          <Link to="/register" className="text-primary hover:underline">
+          <Link to="/getting-started" className="text-primary hover:underline">
             Regístrate
           </Link>
         </p>

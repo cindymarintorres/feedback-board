@@ -8,7 +8,7 @@ import {
   type ResetPasswordFormData,
 } from "@/features/auth/schemas/auth.schema";
 import { AppInput, AppButton} from "@/components/shared";
-import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { usePasswordReset } from "@/features/auth/hooks/usePasswordReset";
 
 
 export const PasswordResetForm = ({ token }: { token: string }) => {

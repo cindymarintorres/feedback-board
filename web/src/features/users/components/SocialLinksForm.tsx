@@ -7,7 +7,7 @@ import {
   SocialLinksFormSchema,
   type SocialLinksFormData,
 } from "../schemas/user-settings.schema";
-import { useUpdateUser } from "@/hooks/useUpdateUser";
+import { useUpdateUser } from "@/features/auth/hooks/useUpdateUser";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 

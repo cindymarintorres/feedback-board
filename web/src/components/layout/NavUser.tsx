@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { useAuthActions } from "@/hooks/useAuthActions";
+import { useAuthActions } from "@/features/auth/hooks/useAuthActions";
 
 export function NavUser() {
   const { state } = useAuth();

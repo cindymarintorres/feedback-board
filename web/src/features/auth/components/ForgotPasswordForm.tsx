@@ -4,7 +4,7 @@ import { Mail, Send } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
 import { ForgotPasswordFormSchema, type ForgotPasswordFormData } from '@/features/auth/schemas/auth.schema'
 import { toast } from "sonner";
-import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { usePasswordReset } from "@/features/auth/hooks/usePasswordReset";
 
 export const ForgotPasswordForm = () => {
 

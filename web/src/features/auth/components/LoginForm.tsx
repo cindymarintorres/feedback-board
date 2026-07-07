@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, LogIn, EyeOff, Eye } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
-import { useAuthActions } from "@/hooks/useAuthActions";
+import { useAuthActions } from "@/features/auth/hooks/useAuthActions";
 import { LoginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schema";
 import { useState } from "react";
 

@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useNavigate, useSearchParams } from "react-router";
-import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { usePasswordReset } from "@/features/auth/hooks/usePasswordReset";
 import { AppButton, FullscreenSpinner } from "@/components/shared";
 
 export function PasswordResetPage() {

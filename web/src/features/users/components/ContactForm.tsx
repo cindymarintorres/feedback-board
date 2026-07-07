@@ -8,7 +8,7 @@ import {
   type ContactFormData,
 } from "../schemas/user-settings.schema";
 import { toast } from "sonner";
-import { useUpdateUser } from "@/hooks/useUpdateUser";
+import { useUpdateUser } from "@/features/auth/hooks/useUpdateUser";
 import { useAuth } from "@/hooks/useAuth";
 
 export function ContactForm() {

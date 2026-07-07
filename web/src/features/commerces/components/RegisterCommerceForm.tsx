@@ -1,18 +1,18 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, UserPlus, EyeOff, Eye } from "lucide-react";
+import { Mail, Lock, User, UserPlus, EyeOff, Eye, Building2, FileText } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
-import { useRegister } from "@/features/auth/hooks/useRegister";
+import { useCommerceActions } from "@/features/commerces/hooks/useCommerceActions";
 import {
-  RegisterFormSchema,
-  type RegisterFormData,
-} from "@/features/auth/schemas/auth.schema";
+  RegisterCommerceFormSchema,
+  type RegisterCommerceFormData,
+} from "@/features/commerces/schemas/commerce.schema";
 import { useEffect, useState } from "react";
 
-export const RegisterForm = () => {
+export const RegisterCommerceForm = () => {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { registerMutation } = useRegister();
+  const { registerCommerceMutation } = useCommerceActions();
 
   const {
     register,
@@ -20,27 +20,31 @@ export const RegisterForm = () => {
     formState: { errors },
     trigger,
     control,
-    getValues
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(RegisterFormSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    getValues,
+  } = useForm<RegisterCommerceFormData>({
+    resolver: zodResolver(RegisterCommerceFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      commerceName: "",
+      commerceDescription: "",
+    },
     mode: "onBlur",
   });
 
-  // 2. Después watch, que depende de useForm
   const password = useWatch({ control, name: "password" });
 
-  // 3. Después useEffect, que depende de watch y trigger
   useEffect(() => {
     if (getValues("confirmPassword")) {
       trigger("confirmPassword");
     }
   }, [password, trigger, getValues]);
 
-  const onSubmit = (data: RegisterFormData) => {
-    // confirmPassword NO se manda — el hook recibe RegisterDto (name+email+password)
+  const onSubmit = (data: RegisterCommerceFormData) => {
     const { confirmPassword, ...payload } = data;
-    registerMutation.mutate(payload);
+    registerCommerceMutation.mutate(payload);
   };
 
   return (
@@ -72,7 +76,7 @@ export const RegisterForm = () => {
         placeholder="••••••••"
         leftIcon={Lock}
         rightIcon={showNew ? Eye : EyeOff}
-        onRightIconClick={() => setShowNew((value) => !value)}
+        onRightIconClick={() => setShowNew((v) => !v)}
         error={errors.password?.message}
         {...register("password")}
       />
@@ -84,24 +88,43 @@ export const RegisterForm = () => {
         placeholder="••••••••"
         leftIcon={Lock}
         rightIcon={showConfirm ? Eye : EyeOff}
-        onRightIconClick={() => setShowConfirm((value) => !value)}
+        onRightIconClick={() => setShowConfirm((v) => !v)}
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
+      />
+
+      <AppInput
+        id="commerceName"
+        label="Nombre del comercio"
+        type="text"
+        placeholder="Mi Tienda"
+        leftIcon={Building2}
+        error={errors.commerceName?.message}
+        {...register("commerceName")}
+      />
+
+      <AppInput
+        id="commerceDescription"
+        label="Descripción (opcional)"
+        type="text"
+        placeholder="Breve descripción de tu comercio"
+        leftIcon={FileText}
+        error={errors.commerceDescription?.message}
+        {...register("commerceDescription")}
       />
 
       <AppButton
         type="submit"
         className="w-full"
-        // isLoading={registerMutation.isPending}
-        loadingText="Creando cuenta..."
-        leftIcon={UserPlus}
+        loadingText="Creando comercio..."
+        leftIcon={Building2}
       >
-        Crear cuenta
+        Crear comercio
       </AppButton>
 
-      {registerMutation.isError && (
+      {registerCommerceMutation.isError && (
         <p className="text-xs text-destructive text-center font-medium">
-          Error al crear la cuenta. Intenta de nuevo.
+          Error al crear el comercio. Intenta de nuevo.
         </p>
       )}
     </form>

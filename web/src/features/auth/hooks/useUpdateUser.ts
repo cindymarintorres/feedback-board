@@ -6,7 +6,7 @@ import type {
   PublicUser,
   AdminResetPasswordDto,
 } from "feedbackboard-shared";
-import { useAuth } from "./useAuth";
+import { useAuth } from "../../../hooks/useAuth";
 
 // utils o dentro del mismo archivo si solo se usa aquí
 const cleanPayload = <T extends Record<string, unknown>>(

@@ -10,7 +10,7 @@ import {
 } from "../schemas/user-settings.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useUpdateUser } from "@/hooks/useUpdateUser";
+import { useUpdateUser } from "@/features/auth/hooks/useUpdateUser";
 
 export function ProfileForm() {
   const { state } = useAuth();

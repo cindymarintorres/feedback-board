@@ -8,7 +8,7 @@ import {
   ChangePasswordFormSchema,
   type ChangePasswordFormData,
 } from "../schemas/user-settings.schema";
-import { useUpdatePassword } from "@/hooks/useUpdateUser";
+import { useUpdatePassword } from "@/features/auth/hooks/useUpdateUser";
 import { toast } from "sonner";
 
 export function SecurityForm() {
