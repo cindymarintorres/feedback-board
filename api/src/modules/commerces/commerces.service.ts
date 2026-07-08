@@ -167,6 +167,6 @@ export class CommercesService {
       this.prisma.commerceVerificationToken.delete({ where: { token } }),
     ]);
 
-    return { message: 'Comercio verificado correctamente' };
+    return { message: 'Comercio verificado correctamente', commerceId: record.commerceId };
   }
 }

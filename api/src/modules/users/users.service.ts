@@ -37,9 +37,16 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id },
       omit: { password: true },
+      include: {
+        ownedCommerces: {
+          select: { id: true, name: true, slug: true, verified: true },
+        },
+      },
     });
     if (!user) throw new UserNotFoundException(id);
-    return user;
+
+    const { ownedCommerces, ...rest } = user;
+    return { ...rest, commerce: ownedCommerces };
   }
 
   async findByEmail(email: string) {
@@ -48,7 +55,11 @@ export class UsersService {
     });
   }
 
-  async create(data: CreateUserDto, tx?: Prisma.TransactionClient, role: UserRole = 'MEMBER') {
+  async create(
+    data: CreateUserDto,
+    tx?: Prisma.TransactionClient,
+    role: UserRole = 'MEMBER',
+  ) {
     const client = tx ?? this.prisma;
     const existingUser = await this.findByEmail(data.email); //
     if (existingUser) throw new EmailAlreadyInUseException();
@@ -110,5 +121,4 @@ export class UsersService {
 
     return { success: true };
   }
-  
 }

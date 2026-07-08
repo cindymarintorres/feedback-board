@@ -13,6 +13,16 @@ export const PublicUserSchema = z.object({
   name: z.string(),
   role: UserRoleSchema,
   avatarUrl: z.string().nullish(),
+  commerce: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        slug: z.string(),
+        verified: z.boolean(),
+      }),
+    )
+    .default([]),
   bio: z.string().nullish(),
   phone: z.string().nullish(),
   location: z.string().nullish(),

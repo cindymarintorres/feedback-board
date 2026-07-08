@@ -8,6 +8,7 @@ export const BaseRegisterCommerceSchema = BaseRegisterSchema.extend({
 
 export const CommerceVerificationResponseSchema = z.object({
   message: z.string(),
+  commerceId: z.string(),
 })
 
 export const CreateCommerceSchema = z.object({
