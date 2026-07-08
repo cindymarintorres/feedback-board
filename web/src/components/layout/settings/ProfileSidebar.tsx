@@ -1,24 +1,28 @@
 import { Link, useLocation } from "react-router";
-import { User, Mail, Link2, UserKey } from "lucide-react";
+import { User, Mail, Link2, UserKey, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const sections = [
-  { label: "Personal", icon: User, hash: "#personal" },
-  { label: "Seguridad", icon: UserKey, hash: "#security" },
-  { label: "Contacto", icon: Mail, hash: "#contact" },
-  { label: "Redes Sociales", icon: Link2, hash: "#social" },
-  //{ label: "Preferencias", icon: Settings, hash: "#preferences" },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 export function ProfileSidebar() {
   const { hash } = useLocation();
   const activeHash = hash || "#personal";
+  const { state } = useAuth();
+  const user = state.user!;
+
+  const sections = [
+    { label: "Personal", icon: User, hash: "#personal" },
+    { label: "Seguridad", icon: UserKey, hash: "#security" },
+    { label: "Contacto", icon: Mail, hash: "#contact" },
+    { label: "Redes Sociales", icon: Link2, hash: "#social" },
+    ...(user.role === "COMMERCE_ADMIN"
+      ? [{ label: "Comercio", icon: Store, hash: "#commerce" }]
+      : []),
+  ];
 
   return (
     <aside className="w-52 shrink-0">
       <nav className="flex flex-col gap-1 w-full">
         {sections.map(({ label, icon: Icon, hash: sectionHash }) => (
-
           <Link
             key={sectionHash}
             to={sectionHash}

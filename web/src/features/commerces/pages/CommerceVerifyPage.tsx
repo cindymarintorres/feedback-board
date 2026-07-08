@@ -15,17 +15,41 @@ export function CommerceVerifyPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? undefined;
   const navigate = useNavigate();
-  const { state } = useAuth();
+  const { state, dispatch } = useAuth();
 
   const { verifyCommerceQuery } = useCommerceActions(token);
-const { isLoading, isSuccess, isError } = verifyCommerceQuery;
+  const { isLoading, isSuccess, isError } = verifyCommerceQuery;
 
   useEffect(() => {
     // Espera a que la query de verificación Y el auth refresh inicial resuelvan
     if (!isSuccess || state.isLoading) return;
+
+    if (state.isAuthenticated && state.user) {
+      const commerceId = verifyCommerceQuery.data.commerceId;
+      const exists = state.user.commerce.some((com) => com.id === commerceId);
+
+      if (exists) {
+        const updatedCommerces = state.user.commerce.map((com) =>
+          com.id === commerceId ? { ...com, verified: true } : com,
+        );
+        dispatch({
+          type: "UPDATE_USER",
+          payload: { commerce: updatedCommerces },
+        });
+      }
+    }
+
     const target = state.isAuthenticated ? "/board" : "/login";
     setTimeout(() => navigate(target), 1500);
-  }, [isSuccess, state.isLoading, state.isAuthenticated, navigate]);
+  }, [
+    isSuccess,
+    state.isLoading,
+    state.isAuthenticated,
+    state.user,
+    verifyCommerceQuery.data,
+    dispatch,
+    navigate,
+  ]);
 
   if (isLoading || !token) return <FullscreenSpinner />;
 

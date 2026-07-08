@@ -1,17 +1,17 @@
 import { useLocation } from "react-router";
-import { useAuth } from "@/hooks/useAuth";
 import { ProfileSidebar } from "@/components/layout/settings/ProfileSidebar";
 import { ProfileForm } from "../components/ProfileForm";
 import { ContactForm } from "../components/ContactForm";
 import { SocialLinksForm } from "../components/SocialLinksForm";
 import { SecurityForm } from "../components/SecurityForm";
+import { useAuth } from "@/hooks/useAuth";
+import { CommerceListSection } from "@/features/commerces/components/CommerceListSection";
 
 export function ProfilePage() {
   const { state } = useAuth();
+  const user = state.user!;
   const { hash } = useLocation();
   const activeSection = hash || "#personal";
-
-  const user = state.user!;
 
   return (
     <div className="max-w-4xl mx-auto py-2 space-y-6">
@@ -30,14 +30,13 @@ export function ProfilePage() {
 
         {/* Contenido según sección activa */}
         <div className="flex-1 min-w-0">
-          {activeSection === "#personal" && (
-            <ProfileForm user={{ name: user.name, email: user.email }} />
-          )}
-          {activeSection === "#contact" && (
-            <ContactForm user={{ email: user.email }} />
-          )}
+          {activeSection === "#personal" && <ProfileForm />}
+          {activeSection === "#contact" && <ContactForm />}
           {activeSection === "#security" && <SecurityForm />}
           {activeSection === "#social" && <SocialLinksForm />}
+          {activeSection === "#commerce" && user.role === "COMMERCE_ADMIN" && (
+            <CommerceListSection commerces={user.commerce} />
+          )}
           {/* {activeSection === "#preferences" && (
             <section className="rounded-xl border bg-card p-6">
               <h2 className="text-base font-semibold">Preferences</h2>
