@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CommerceNotFoundException,
@@ -90,9 +90,27 @@ export class CommercesService {
     return { ...commerce, feedbackUrl: this.buildFeedbackUrl(commerce.slug) };
   }
 
-  async update(id: string, data: UpdateCommerceDto) {
+  async update(
+    id: string,
+    data: UpdateCommerceDto,
+    currentUserId: string,
+    isAdmin: boolean,
+  ) {
     const commerce = await this.prisma.commerce.findUnique({ where: { id } });
     if (!commerce) throw new CommerceNotFoundException(id);
+
+    if (!isAdmin) {
+      if (commerce.ownerId !== currentUserId) {
+        throw new ForbiddenException(
+          'No tienes permiso para editar este comercio',
+        );
+      }
+      if (data.slug !== undefined) {
+        throw new ForbiddenException(
+          'No puedes modificar el enlace público de tu comercio. Contacta a un administrador.',
+        );
+      }
+    }
 
     if (data.slug && data.slug !== commerce.slug) {
       const existing = await this.prisma.commerce.findUnique({
@@ -101,12 +119,19 @@ export class CommercesService {
       if (existing) throw new SlugAlreadyInUseException();
     }
 
-    return this.prisma.commerce.update({ where: { id }, data });
+    const updated = await this.prisma.commerce.update({ where: { id }, data });
+    return { ...updated, feedbackUrl: this.buildFeedbackUrl(updated.slug) };
   }
 
-  async remove(id: string) {
+  async remove(id: string, currentUserId: string, isAdmin: boolean) {
     const commerce = await this.prisma.commerce.findUnique({ where: { id } });
     if (!commerce) throw new CommerceNotFoundException(id);
+
+    if (!isAdmin && commerce.ownerId !== currentUserId) {
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar este comercio',
+      );
+    }
 
     await this.prisma.commerce.delete({ where: { id } });
     return { success: true };

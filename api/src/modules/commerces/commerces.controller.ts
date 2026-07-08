@@ -6,8 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
-  ForbiddenException,
+  UseGuards
 } from '@nestjs/common';
 import { CommercesService } from './commerces.service';
 import {
@@ -41,7 +40,6 @@ export class CommercesController {
     return this.commercesService.findAll(currentUser.id, isAdmin);
   }
 
-  
   @Get(':id')
   @Roles(UserRoleValues.ADMIN, UserRoleValues.COMMERCE_ADMIN)
   findOne(@Param('id') id: string) {
@@ -67,7 +65,8 @@ export class CommercesController {
   @Post('mine')
   @Roles(UserRoleValues.COMMERCE_ADMIN)
   addCommerce(
-    @Body(new ZodValidationPipe(CreateOwnCommerceSchema)) dto: CreateOwnCommerceDto,
+    @Body(new ZodValidationPipe(CreateOwnCommerceSchema))
+    dto: CreateOwnCommerceDto,
     @CurrentUser() currentUser: JwtUser,
   ) {
     return this.commercesService.addCommerce(dto, currentUser.id);
@@ -75,27 +74,19 @@ export class CommercesController {
 
   @Patch(':id')
   @Roles(UserRoleValues.ADMIN, UserRoleValues.COMMERCE_ADMIN)
-  async update(
+  update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(UpdateCommerceSchema)) dto: UpdateCommerceDto,
     @CurrentUser() currentUser: JwtUser,
   ) {
-    if (currentUser.role !== UserRoleValues.ADMIN) {
-      const commerce = await this.commercesService.findById(id);
-      if (commerce.ownerId !== currentUser.id) {
-        throw new ForbiddenException(
-          'No tienes permiso para editar este comercio',
-        );
-      }
-    }
-    return this.commercesService.update(id, dto);
+    const isAdmin = currentUser.role === UserRoleValues.ADMIN;
+    return this.commercesService.update(id, dto, currentUser.id, isAdmin);
   }
 
   @Delete(':id')
-  @Roles(UserRoleValues.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.commercesService.remove(id);
+  @Roles(UserRoleValues.ADMIN, UserRoleValues.COMMERCE_ADMIN)
+  remove(@Param('id') id: string, @CurrentUser() currentUser: JwtUser) {
+    const isAdmin = currentUser.role === UserRoleValues.ADMIN;
+    return this.commercesService.remove(id, currentUser.id, isAdmin);
   }
-
-
 }

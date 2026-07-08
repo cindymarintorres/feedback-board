@@ -36,7 +36,6 @@ export const CommerceResponseSchema = z.object({
 })
 
 export const AddCommerceResponseSchema = CommerceResponseSchema.omit({
-  description: true,
   logoUrl: true,
   ownerId: true,
   feedbackUrl: true,

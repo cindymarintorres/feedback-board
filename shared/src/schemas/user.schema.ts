@@ -19,6 +19,7 @@ export const PublicUserSchema = z.object({
         id: z.string(),
         name: z.string(),
         slug: z.string(),
+        description: z.string().nullish(),
         verified: z.boolean(),
       }),
     )
