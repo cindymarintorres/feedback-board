@@ -2,11 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
-import type { LoginResponse, RegisterCommerceDto } from "feedbackboard-shared";
+import type { AddCommerceResponseDto, CreateOwnCommerceDto, LoginResponse, RegisterCommerceDto } from "feedbackboard-shared";
+import { commerceService } from "@/services/comerceService";
 
 export const useCommerceActions = (token?: string) => {
   const navigate = useNavigate();
-  const { dispatch } = useAuth();
+  const { state, dispatch } = useAuth();
 
   const registerCommerceMutation = useMutation<RegisterCommerceDto>({
     mutationFn: (payload: RegisterCommerceDto) =>
@@ -38,5 +39,16 @@ export const useCommerceActions = (token?: string) => {
     staleTime: 0,
   });
 
-  return { registerCommerceMutation, verifyCommerceQuery };
+  const addCommerceMutation = useMutation({
+    mutationFn: (payload: CreateOwnCommerceDto) => commerceService.addCommerce(payload),
+    onSuccess: (newCommerce: AddCommerceResponseDto) => {
+      if (!state.user) return;
+      dispatch({
+        type: "UPDATE_USER",
+        payload: { commerce: [...state.user.commerce, newCommerce] },
+      });
+    },
+  });
+
+  return { registerCommerceMutation, verifyCommerceQuery , addCommerceMutation};
 };

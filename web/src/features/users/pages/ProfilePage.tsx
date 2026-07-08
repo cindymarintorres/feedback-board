@@ -4,7 +4,7 @@ import { ProfileForm } from "../components/ProfileForm";
 import { ContactForm } from "../components/ContactForm";
 import { SocialLinksForm } from "../components/SocialLinksForm";
 import { SecurityForm } from "../components/SecurityForm";
-import { CommerceListSection } from "@/features/users/components/CommerceListSection";
+import { CommerceListSection } from "@/features/commerces/components/CommerceListSection";
 
 export function ProfilePage() {
   const { hash } = useLocation();

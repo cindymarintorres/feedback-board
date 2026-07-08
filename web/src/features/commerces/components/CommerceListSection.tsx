@@ -1,13 +1,21 @@
+import { AppButton } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PublicUser } from "feedbackboard-shared";
-import { Store } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Plus, Store } from "lucide-react";
+import { useState } from "react";
+import { AddCommerceDialog } from "./AddCommerceDialog";
+import { Separator } from "@/components/ui/separator";
 
-interface CommerceListSectionProps {
-  commerces: PublicUser["commerce"];
-}
+export function CommerceListSection() {
+  const { state } = useAuth();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const user = state.user;
 
-export function CommerceListSection({ commerces }: CommerceListSectionProps) {
+  if (!user || user.role !== "COMMERCE_ADMIN") return null;
+
+  const commerces = user.commerce;
+
   if (commerces.length === 0) {
     return (
       <Card>
@@ -19,11 +27,18 @@ export function CommerceListSection({ commerces }: CommerceListSectionProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold">Mis comercios</CardTitle>
+    <>
+    <Card className="px-4">
+      <CardHeader className="flex flex-row justify-between items-center">
+        <CardTitle className="text-lg font-semibold font-si">Mis comercios</CardTitle>
+        <AppButton type="button" leftIcon={Plus} onClick={() => setDialogOpen(true)}>
+          Agregar comercio
+        </AppButton>
       </CardHeader>
-      <CardContent className="space-y-3">
+
+      <Separator />
+
+      <CardContent className="space-y-3 max-h-80 overflow-y-auto">
         {commerces.map((com) => (
           <div
             key={com.id}
@@ -36,12 +51,14 @@ export function CommerceListSection({ commerces }: CommerceListSectionProps) {
                 <p className="text-xs text-muted-foreground">/{com.slug}</p>
               </div>
             </div>
-            <Badge variant={com.verified ? "default" : "secondary"}>
+            <Badge variant={com.verified ? "default" : "secondary"} className="leading-0">
               {com.verified ? "Verificado" : "Pendiente"}
             </Badge>
           </div>
         ))}
       </CardContent>
     </Card>
+    <AddCommerceDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+    </>
   );
 }

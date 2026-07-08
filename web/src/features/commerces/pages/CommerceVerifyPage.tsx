@@ -26,9 +26,9 @@ export function CommerceVerifyPage() {
 
     if (state.isAuthenticated && state.user) {
       const commerceId = verifyCommerceQuery.data.commerceId;
-      const exists = state.user.commerce.some((com) => com.id === commerceId);
+      const target = state.user.commerce.find((com) => com.id === commerceId);
 
-      if (exists) {
+      if (target && !target.verified) {
         const updatedCommerces = state.user.commerce.map((com) =>
           com.id === commerceId ? { ...com, verified: true } : com,
         );
@@ -39,8 +39,8 @@ export function CommerceVerifyPage() {
       }
     }
 
-    const target = state.isAuthenticated ? "/board" : "/login";
-    setTimeout(() => navigate(target), 1500);
+    const redirectTarget = state.isAuthenticated ? "/board" : "/login";
+    setTimeout(() => navigate(redirectTarget), 1500);
   }, [
     isSuccess,
     state.isLoading,
