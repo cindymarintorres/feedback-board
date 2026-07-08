@@ -12,6 +12,7 @@ import {
 import { CommercesService } from './commerces.service';
 import {
   CreateCommerceDto,
+  CreateOwnCommerceDto,
   UpdateCommerceDto,
 } from './schemas/commerce.schema';
 import {
@@ -19,6 +20,7 @@ import {
   UpdateCommerceSchema,
   JwtUser,
   UserRoleValues,
+  CreateOwnCommerceSchema,
 } from 'feedbackboard-shared';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -39,6 +41,7 @@ export class CommercesController {
     return this.commercesService.findAll(currentUser.id, isAdmin);
   }
 
+  
   @Get(':id')
   @Roles(UserRoleValues.ADMIN, UserRoleValues.COMMERCE_ADMIN)
   findOne(@Param('id') id: string) {
@@ -59,6 +62,15 @@ export class CommercesController {
     @CurrentUser() currentUser: JwtUser,
   ) {
     return this.commercesService.create(dto, currentUser.id);
+  }
+
+  @Post('mine')
+  @Roles(UserRoleValues.COMMERCE_ADMIN)
+  addCommerce(
+    @Body(new ZodValidationPipe(CreateOwnCommerceSchema)) dto: CreateOwnCommerceDto,
+    @CurrentUser() currentUser: JwtUser,
+  ) {
+    return this.commercesService.addCommerce(dto, currentUser.id);
   }
 
   @Patch(':id')
@@ -84,4 +96,6 @@ export class CommercesController {
   remove(@Param('id') id: string) {
     return this.commercesService.remove(id);
   }
+
+
 }

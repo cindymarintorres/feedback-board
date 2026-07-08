@@ -19,6 +19,7 @@ export const CreateCommerceSchema = z.object({
   description: z.string().optional(),
 })
 
+export const CreateOwnCommerceSchema = CreateCommerceSchema.omit({ slug: true })
 export const UpdateCommerceSchema = CreateCommerceSchema.partial()
 
 export const CommerceResponseSchema = z.object({
@@ -34,7 +35,18 @@ export const CommerceResponseSchema = z.object({
   updatedAt: z.coerce.date(),
 })
 
+export const AddCommerceResponseSchema = CommerceResponseSchema.omit({
+  description: true,
+  logoUrl: true,
+  ownerId: true,
+  feedbackUrl: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type AddCommerceResponseDto = z.infer<typeof AddCommerceResponseSchema>
 export type CommerceResponseDto = z.infer<typeof CommerceResponseSchema>
 export type RegisterCommerceDto = z.infer<typeof BaseRegisterCommerceSchema>
 export type CreateCommerceDto = z.infer<typeof CreateCommerceSchema>
+export type CreateOwnCommerceDto = z.infer<typeof CreateOwnCommerceSchema>
 export type UpdateCommerceDto = z.infer<typeof UpdateCommerceSchema>

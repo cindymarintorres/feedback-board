@@ -8,6 +8,7 @@ import {
 } from './errors/commerce.errors';
 import {
   CreateCommerceDto,
+  CreateOwnCommerceDto,
   RegisterCommerceDto,
   UpdateCommerceDto,
 } from './schemas/commerce.schema';
@@ -71,6 +72,24 @@ export class CommercesService {
     return { ...commerce, feedbackUrl: this.buildFeedbackUrl(commerce.slug) };
   }
 
+  async addCommerce(dto: CreateOwnCommerceDto, ownerId: string) {
+    const slug = await this.generateUniqueSlug(dto.name);
+
+    const commerce = await this.prisma.commerce.create({
+      data: {
+        name: dto.name,
+        slug,
+        description: dto.description,
+        ownerId,
+        verified: true,
+      },
+    });
+
+    this.logger.log(`Commerce added: ${commerce.id} by owner: ${ownerId}`);
+
+    return { ...commerce, feedbackUrl: this.buildFeedbackUrl(commerce.slug) };
+  }
+
   async update(id: string, data: UpdateCommerceDto) {
     const commerce = await this.prisma.commerce.findUnique({ where: { id } });
     if (!commerce) throw new CommerceNotFoundException(id);
@@ -106,6 +125,16 @@ export class CommercesService {
       .replace(/(^-|-$)/g, '');
   }
 
+  private async generateUniqueSlug(name: string): Promise<string> {
+    let slug = this.generateSlug(name);
+    let existing = await this.prisma.commerce.findUnique({ where: { slug } });
+    while (existing) {
+      slug = `${this.generateSlug(name)}-${crypto.randomBytes(2).toString('hex')}`;
+      existing = await this.prisma.commerce.findUnique({ where: { slug } });
+    }
+    return slug;
+  }
+
   private generateVerificationToken(): string {
     return crypto.randomBytes(32).toString('hex');
   }
@@ -114,15 +143,13 @@ export class CommercesService {
     const { commerceName, commerceDescription, ...userData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
+      const user = await this.usersService.create(
+        userData,
+        tx,
+        'COMMERCE_ADMIN',
+      );
 
-      const user = await this.usersService.create(userData, tx, 'COMMERCE_ADMIN');
-
-      let slug = this.generateSlug(commerceName);
-      let existing = await tx.commerce.findUnique({ where: { slug } });
-      while (existing) {
-        slug = `${this.generateSlug(commerceName)}-${crypto.randomBytes(2).toString('hex')}`;
-        existing = await tx.commerce.findUnique({ where: { slug } });
-      }
+      const slug = await this.generateUniqueSlug(commerceName);
 
       const commerce = await this.create(
         { name: commerceName, slug, description: commerceDescription },
@@ -167,6 +194,9 @@ export class CommercesService {
       this.prisma.commerceVerificationToken.delete({ where: { token } }),
     ]);
 
-    return { message: 'Comercio verificado correctamente', commerceId: record.commerceId };
+    return {
+      message: 'Comercio verificado correctamente',
+      commerceId: record.commerceId,
+    };
   }
 }

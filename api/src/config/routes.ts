@@ -5,8 +5,8 @@ export const ROUTES = {
   },
 
   commerces: {
-    bySlug: '/commerces/slug/:slug',
-    verifyCommerce: '/commerces/verify'
+    bySlug: '/commerce/slug/:slug',
+    verifyCommerce: '/commerce/verify'
   },
   feedback: '/feedback',
 } as const;
