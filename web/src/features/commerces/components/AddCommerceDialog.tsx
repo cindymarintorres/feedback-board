@@ -11,15 +11,25 @@ import {
 } from "@/components/ui/dialog";
 import { AppInput, AppTextarea, AppButton } from "@/components/shared";
 import { useCommerceActions } from "@/features/commerces/hooks/useCommerceActions";
-import { CreateOwnCommerceSchema, type CreateOwnCommerceDto } from "feedbackboard-shared";
+import {
+  CreateOwnCommerceSchema,
+  type AddCommerceResponseDto,
+  type CreateOwnCommerceDto,
+} from "feedbackboard-shared";
 
 interface AddCommerceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingCommerce?: AddCommerceResponseDto | null;
 }
 
-export function AddCommerceDialog({ open, onOpenChange }: AddCommerceDialogProps) {
-  const { addCommerceMutation } = useCommerceActions();
+export function AddCommerceDialog({
+  open,
+  onOpenChange,
+  editingCommerce,
+}: AddCommerceDialogProps) {
+  const { addCommerceMutation, updateCommerceMutation } = useCommerceActions();
+  const isEditing = !!editingCommerce;
 
   const {
     register,
@@ -28,9 +38,27 @@ export function AddCommerceDialog({ open, onOpenChange }: AddCommerceDialogProps
     formState: { errors, isSubmitting },
   } = useForm<CreateOwnCommerceDto>({
     resolver: zodResolver(CreateOwnCommerceSchema),
+    values: {
+      name: editingCommerce?.name ?? "",
+      description: editingCommerce?.description ?? "",
+    },
   });
 
   const onSubmit = async (data: CreateOwnCommerceDto) => {
+    if (isEditing) {
+      await updateCommerceMutation.mutateAsync(
+        { id: editingCommerce.id, payload: data },
+        {
+          onSuccess: () => {
+            toast.success("Comercio actualizado correctamente");
+            onOpenChange(false);
+          },
+          onError: () => toast.error("Error al actualizar el comercio"),
+        },
+      );
+      return;
+    }
+
     await addCommerceMutation.mutateAsync(data, {
       onSuccess: () => {
         toast.success("Comercio agregado correctamente");
@@ -45,9 +73,11 @@ export function AddCommerceDialog({ open, onOpenChange }: AddCommerceDialogProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar comercio</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar comercio" : "Agregar comercio"}</DialogTitle>
           <DialogDescription>
-            Este comercio quedará verificado automáticamente en tu cuenta.
+            {isEditing
+              ? "El enlace público de este comercio no cambia."
+              : "Este comercio quedará verificado automáticamente en tu cuenta."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

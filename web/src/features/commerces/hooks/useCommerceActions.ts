@@ -2,8 +2,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
-import type { AddCommerceResponseDto, CreateOwnCommerceDto, LoginResponse, RegisterCommerceDto } from "feedbackboard-shared";
-import { commerceService } from "@/services/comerceService";
+import type {
+  AddCommerceResponseDto,
+  CreateOwnCommerceDto,
+  LoginResponse,
+  RegisterCommerceDto,
+  UpdateCommerceDto,
+} from "feedbackboard-shared";
+import { commerceService } from "@/services/commerceService";
 
 export const useCommerceActions = (token?: string) => {
   const navigate = useNavigate();
@@ -40,7 +46,8 @@ export const useCommerceActions = (token?: string) => {
   });
 
   const addCommerceMutation = useMutation({
-    mutationFn: (payload: CreateOwnCommerceDto) => commerceService.addCommerce(payload),
+    mutationFn: (payload: CreateOwnCommerceDto) =>
+      commerceService.addCommerce(payload),
     onSuccess: (newCommerce: AddCommerceResponseDto) => {
       if (!state.user) return;
       dispatch({
@@ -50,5 +57,34 @@ export const useCommerceActions = (token?: string) => {
     },
   });
 
-  return { registerCommerceMutation, verifyCommerceQuery , addCommerceMutation};
+  const updateCommerceMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateCommerceDto }) =>
+      commerceService.updateCommerce(id, payload),
+    onSuccess: (updatedCommerce: AddCommerceResponseDto) => {
+      if (!state.user) return;
+      const updatedList = state.user.commerce.map((com) =>
+        com.id === updatedCommerce.id ? updatedCommerce : com,
+      );
+      dispatch({ type: "UPDATE_USER", payload: { commerce: updatedList } });
+    },
+  });
+
+  const deleteCommerceMutation = useMutation({
+    mutationFn: (id: string) => commerceService.deleteCommerce(id),
+    onSuccess: (_result: { success: boolean }, deletedId: string) => {
+      if (!state.user) return;
+      const updatedList = state.user.commerce.filter(
+        (com) => com.id !== deletedId,
+      );
+      dispatch({ type: "UPDATE_USER", payload: { commerce: updatedList } });
+    },
+  });
+
+  return {
+    registerCommerceMutation,
+    verifyCommerceQuery,
+    addCommerceMutation,
+    updateCommerceMutation,
+    deleteCommerceMutation,
+  };
 };

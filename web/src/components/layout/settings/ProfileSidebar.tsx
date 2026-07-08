@@ -20,14 +20,14 @@ export function ProfileSidebar() {
   ];
 
   return (
-    <aside className="w-52 shrink-0">
-      <nav className="flex flex-col gap-1 w-full">
+    <aside className="w-full md:w-52 shrink-0">
+      <nav className="flex flex-row md:flex-col gap-1 w-full overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
         {sections.map(({ label, icon: Icon, hash: sectionHash }) => (
           <Link
             key={sectionHash}
             to={sectionHash}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2 md:gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap shrink-0",
               activeHash === sectionHash
                 ? "bg-sidebar-accent text-accent-foreground"
                 : "text-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

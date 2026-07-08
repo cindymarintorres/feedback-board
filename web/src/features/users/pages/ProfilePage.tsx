@@ -21,7 +21,7 @@ export function ProfilePage() {
       </div>
 
       {/* ── Layout: sidebar + contenido ────────────────────────────────────── */}
-      <div className="flex gap-8 items-start">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch md:items-start">
         {/* Sidebar */}
         <ProfileSidebar />
 
