@@ -32,14 +32,14 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     @InjectQueue('mail') private readonly mailQueue: Queue, // Cola
-    private readonly commercesService: CommercesService
+    private readonly commercesService: CommercesService,
   ) {}
 
   async validateUser(
     userEmail: string,
     userPassword: string,
   ): Promise<PublicUser> {
-    const user = await this.usersService.findByEmail(userEmail);
+    const user = await this.usersService.findByEmailWithCommerce(userEmail);
 
     if (!user || !user.isActive) throw new InvalidCredentialsException();
 
@@ -47,9 +47,8 @@ export class AuthService {
 
     if (!isPasswordValid) throw new InvalidCredentialsException();
 
-    const { password, isActive, ...publicUser } = user;
-
-    return publicUser;
+    const { password, isActive, ownedCommerces, ...rest } = user;
+    return { ...rest, commerce: ownedCommerces };
   }
 
   async login(loginDto: LoginDto): Promise<AuthResult> {
@@ -204,11 +203,12 @@ export class AuthService {
 
   async registerCommerce(dto: RegisterCommerceDto): Promise<AuthResult> {
     const { user } = await this.commercesService.registerWithOwner(dto);
+    const publicUser = await this.usersService.findById(user.id);
 
     const payload: JwtPayload = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
+      id: publicUser.id,
+      email: publicUser.email,
+      role: publicUser.role,
     };
     const accessToken = this.jwtService.sign(payload);
     const refreshOptions = {
@@ -218,7 +218,7 @@ export class AuthService {
     };
     const refreshToken = this.jwtService.sign(payload, refreshOptions);
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken, user: publicUser };
   }
 
   async verifyCommerce(token: string) {

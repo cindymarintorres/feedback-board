@@ -55,6 +55,17 @@ export class UsersService {
     });
   }
 
+  async findByEmailWithCommerce(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        ownedCommerces: {
+          select: { id: true, name: true, slug: true, verified: true },
+        },
+      },
+    });
+  }
+
   async create(
     data: CreateUserDto,
     tx?: Prisma.TransactionClient,
