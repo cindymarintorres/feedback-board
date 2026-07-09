@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from '@nestjs/common'
+import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common'
 
 export class VoteAlreadyExistsException extends HttpException {
   constructor() {
@@ -18,5 +18,11 @@ export class SuggestionNotFoundForVoteException extends HttpException {
       `Sugerencia con id ${suggestionId} no encontrada`,
       HttpStatus.NOT_FOUND,
     )
+  }
+}
+
+export class CommerceNotFoundForVoteException extends NotFoundException {
+  constructor(commerceId?: string) {
+    super(commerceId ? `Comercio ${commerceId} no encontrado` : 'Comercio no encontrado');
   }
 }

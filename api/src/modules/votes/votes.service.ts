@@ -1,13 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   VoteAlreadyExistsException,
   VoteNotFoundException,
   SuggestionNotFoundForVoteException,
+  CommerceNotFoundForVoteException,
 } from './errors/votes.errors';
 import { CreateVoteDto, UpdateVoteDto } from './schemas/votes.schema';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { UserRole, UserRoleValues } from 'feedbackboard-shared';
 
 @Injectable()
 export class VotesService {
@@ -81,5 +83,50 @@ export class VotesService {
       where: { userId_suggestionId: { userId, suggestionId } },
     });
     return { success: true };
+  }
+
+  async findByUser(userId: string) {
+    return this.prisma.vote.findMany({
+      where: { userId },
+      include: {
+        suggestion: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            commerce: { select: { id: true, name: true, slug: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findByCommerce(
+    commerceId: string,
+    currentUserId: string,
+    currentUserRole: UserRole,
+  ) {
+    const commerce = await this.prisma.commerce.findUnique({
+      where: { id: commerceId },
+      select: { id: true, ownerId: true },
+    });
+    if (!commerce) throw new CommerceNotFoundForVoteException(commerceId);
+
+    if (
+      currentUserRole === UserRoleValues.COMMERCE_ADMIN &&
+      commerce.ownerId !== currentUserId
+    ) {
+      throw new ForbiddenException('No tienes acceso a este comercio');
+    }
+
+    return this.prisma.vote.findMany({
+      where: { suggestion: { commerceId } },
+      include: {
+        suggestion: { select: { id: true, title: true, category: true } },
+        user: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }
