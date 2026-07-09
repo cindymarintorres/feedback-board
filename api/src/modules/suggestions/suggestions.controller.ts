@@ -48,6 +48,20 @@ export class SuggestionsController {
     );
   }
 
+  @Get('mine')
+  @Roles(UserRoleValues.MEMBER)
+  findMine(
+    @Query('category') category: string,
+    @Query('order') order: 'newest' | 'most_voted',
+    @CurrentUser() currentUser: JwtUser,
+  ) {
+    return this.suggestionsService.findByAuthor(
+      currentUser.id,
+      category,
+      order,
+    );
+  }
+
   @Get(':id')
   @Roles(
     UserRoleValues.MEMBER,
@@ -57,7 +71,7 @@ export class SuggestionsController {
   findOne(@Param('id') id: string) {
     return this.suggestionsService.findById(id);
   }
-  
+
   @Post()
   @Roles(UserRoleValues.MEMBER)
   create(

@@ -122,4 +122,31 @@ export class SuggestionsService {
     await this.prisma.suggestion.delete({ where: { id } });
     return { success: true };
   }
+
+  async findByAuthor(authorId: string, category: string, order: string) {
+    const suggestions = await this.prisma.suggestion.findMany({
+      where: {
+        authorId,
+        ...(category && { category: category as Category }),
+      },
+      include: {
+        commerce: { select: { id: true, name: true, slug: true } },
+        votes: { select: { userId: true, type: true } },
+      },
+      orderBy:
+        order === 'most_voted'
+          ? { votes: { _count: 'desc' } }
+          : { createdAt: 'desc' },
+    });
+
+    return suggestions.map(({ votes, ...suggestion }) => ({
+      ...suggestion,
+      voteCounts: {
+        GOOD: votes.filter((v) => v.type === 'GOOD').length,
+        REGULAR: votes.filter((v) => v.type === 'REGULAR').length,
+        BAD: votes.filter((v) => v.type === 'BAD').length,
+      },
+      userVote: votes.find((v) => v.userId === authorId)?.type ?? null,
+    }));
+  }
 }
