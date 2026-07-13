@@ -12,8 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CommercesModule } from './modules/commerces/commerces.module';
-import { SuggestionsModule } from './modules/suggestions/suggestions.module';
-import { VotesModule } from './modules/votes/votes.module';
+import { CommerceReviews } from './modules/commerce-reviews/commerce-reviews.module';
 
 @Module({
   imports: [
@@ -42,9 +41,8 @@ import { VotesModule } from './modules/votes/votes.module';
     UsersModule,
     AuthModule,
     MailModule,
+    CommerceReviews,
     CommercesModule,
-    SuggestionsModule,
-    VotesModule
   ],
   providers: [
     {
