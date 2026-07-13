@@ -1,1 +1,0 @@
-export type { CreateSuggestionDto, Category } from 'feedbackboard-shared'
