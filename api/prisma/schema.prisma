@@ -25,11 +25,6 @@ enum Category {
   OTHER
 }
 
-enum VoteType {
-  GOOD
-  REGULAR
-  BAD
-}
 
 model User {
   id                  String               @id @default(uuid())
@@ -48,8 +43,7 @@ model User {
   isActive            Boolean              @default(true)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  suggestions         Suggestion[]
-  votes               Vote[]
+reviews             CommerceReview[]
   passwordResetTokens PasswordResetToken[]
   ownedCommerces      Commerce[]
 
@@ -69,7 +63,7 @@ model Commerce {
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
   owner              User                        @relation(fields: [ownerId], references: [id])
-  suggestions        Suggestion[]
+  reviews            CommerceReview[]
   verificationTokens CommerceVerificationToken[]
 
   @@index([slug])
@@ -77,37 +71,20 @@ model Commerce {
   @@map("commerces")
 }
 
-model Suggestion {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  category    Category
-  authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  author      User     @relation(fields: [authorId], references: [id])
-  votes       Vote[]
-  commerceId  String
-  commerce    Commerce @relation(fields: [commerceId], references: [id])
+model CommerceReview {
+  id         String    @id @default(uuid())
+  stars      Int
+  category   Category?
+  comment    String?
+  authorId   String
+  commerceId String
+  author     User      @relation(fields: [authorId], references: [id])
+  commerce   Commerce  @relation(fields: [commerceId], references: [id])
+  createdAt  DateTime  @default(now())
 
-  @@index([authorId])
-  @@index([category])
+  @@unique([authorId, commerceId])
   @@index([commerceId])
-  @@map("suggestions")
-}
-
-model Vote {
-  id           String     @id @default(uuid())
-  userId       String
-  suggestionId String
-  createdAt    DateTime   @default(now())
-  user         User       @relation(fields: [userId], references: [id])
-  suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
-  type         VoteType   @default(GOOD)
-
-  @@unique([userId, suggestionId])
-  @@index([suggestionId])
-  @@map("votes")
+  @@map("commerce_reviews")
 }
 
 model PasswordResetToken {
