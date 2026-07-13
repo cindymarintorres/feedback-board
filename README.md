@@ -2,7 +2,7 @@
 
 **Plataforma de feedback y votación para productos, similar a Canny.io pero open source y self-hosteable.**
 
-> Los usuarios registrados envían sugerencias de mejora, votan las que más les interesan, y reciben notificaciones por email cuando el admin cambia el estado de su sugerencia. El admin gestiona el board, modera sugerencias y actualiza estados desde un dashboard privado.
+> Los usuarios registrados califican comercios con una reseña (estrellas obligatorias + categoría y comentario opcionales). El dueño del comercio visualiza el promedio y el detalle de cada reseña desde un dashboard privado.
 
 **🎭 Tres roles:** Admin, Commerce Admin y Member. Todos se autentican con JWT.
 
@@ -48,8 +48,7 @@ feedbackboard/
 │   │   ├── modules/
 │   │   │   ├── auth/
 │   │   │   ├── commerces/
-│   │   │   ├── suggestions/
-│   │   │   ├── votes/
+│   │   │   ├── commerce-reviews/
 │   │   │   ├── users/
 │   │   │   └── mail/
 │   │   ├── prisma/
@@ -61,6 +60,7 @@ feedbackboard/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── providers/
+│   │   │   ├── guards/
 │   │   │   └── router/
 │   │   ├── assets/
 │   │   ├── components/
@@ -73,8 +73,7 @@ feedbackboard/
 │   │   │   ├── auth/
 │   │   │   ├── board/
 │   │   │   ├── commerces/
-│   │   │   ├── suggestions/
-│   │   │   └── votes/
+│   │   │   ├── commerce-reviews/
 │   │   ├── hooks/
 │   │   ├── lib/
 │   │   ├── services/
@@ -168,16 +167,9 @@ docker exec -it fb_api npx prisma studio
   PATCH  /api/commerces/:id              # Admin + Commerce Admin (solo el propio)
   DELETE /api/commerces/:id              # Admin only
 
-💡 Suggestions
-  GET    /api/suggestions                # filtros: category, commerceId, order
-  GET    /api/suggestions/:id
-  POST   /api/suggestions                # Member — requiere commerceId
-  DELETE /api/suggestions/:id            # Admin o author
-
-🗳️ Votes
-  POST   /api/suggestions/:suggestionId/votes    # Member — emitir voto (GOOD | REGULAR | BAD)
-  PATCH  /api/suggestions/:suggestionId/votes    # Member — cambiar tipo de voto
-  DELETE /api/suggestions/:suggestionId/votes    # Member — quitar voto
+⭐ Commerce Reviews
+  GET    /api/commerce-reviews           # Commerce Admin + Admin — filtros: commerceId, order
+  POST   /api/commerce-reviews           # Member — stars (1-5) obligatorio, category/comment opcionales
 
 ❤️ Health
   GET    /api/health
@@ -289,7 +281,7 @@ Los warnings `Unknown at rule @theme` y `Unknown at rule @custom-variant` son **
 | 🏷️ Decorator | @Roles(), @CurrentUser() | Metadatos declarativos, código limpio |
 | 🗄️ Repository (via Prisma) | Todos los services | Abstrae acceso a datos |
 | 🖼️ Container/Presentational | Páginas vs componentes UI | Separación lógica/presentación en React |
-| 🪝 Custom Hook | useAuth, useSuggestions, useSocket | Reutilización de lógica de estado |
+| 🪝 Custom Hook | useAuth, useCommerceReviews, useSocket | Reutilización de lógica de estado |
 
 ---
 
@@ -302,7 +294,7 @@ Los warnings `Unknown at rule @theme` y `Unknown at rule @custom-variant` son **
 - 🚨 **Errores:** manejados con filtro global `HttpExceptionFilter`
 - 📏 **Componentes React:** máximo 150 líneas — si crece se divide
 - 🔤 **Props de componentes:** usar `type` en lugar de `interface`
-- 🔒 **Un voto por usuario por sugerencia:** enforceado en DB con `@@unique`
+- 🔒 **Una review por usuario por comercio:** enforceado en DB con `@@unique([authorId, commerceId])`
 - 🛡️ **Roles:** verificados siempre en el servidor, nunca solo en el cliente
 
 ## 🧭 Decisiones técnicas
@@ -345,28 +337,22 @@ Esto garantiza un balance óptimo: no se satura al servidor con peticiones innec
 En lugar del modelo binario Admin/Member original, se adoptó un modelo de tres niveles. El `ADMIN` es el superadmin de la plataforma — crea y elimina comercios. El `COMMERCE_ADMIN` es el dueño de un comercio específico — solo ve y edita el suyo. El `MEMBER` es el usuario final que vota y sugiere. Esta separación evita que un admin de un ecommerce vea información confidencial de otros.
 
 ### 🏪 Commerce como entidad central
-Las sugerencias y votos pertenecen siempre a un comercio (`commerceId`), no flotan como entidades globales. Cada comercio tiene un `slug` único que determina su URL pública (`/feedback/:slug`). El `feedbackUrl` se construye en el service (no en el controller) concatenando `WEB_URL` + `ROUTES.feedback` + `slug`, siguiendo el mismo patrón que `sendPasswordReset`.
+Las reviews pertenecen siempre a un comercio (`commerceId`), no flotan como entidades globales. Cada comercio tiene un `slug` único que determina su URL pública (`/feedback/:slug`). El `feedbackUrl` se construye en el service (no en el controller) concatenando `WEB_URL` + `ROUTES.feedback` + `slug`, siguiendo el mismo patrón que `sendPasswordReset`.
 
 ### 🚪 Registro diferenciado: persona natural vs comercio
 El registro tiene dos flujos separados con rutas propias (`/auth/register` y `/auth/register-commerce`). Registrarse como comercio crea `User` + `Commerce` en una única transacción atómica de Prisma (previene usuarios huérfanos si falla la creación del comercio), autologuea al dueño de inmediato, y marca el `Commerce.verified` en `false` hasta que confirme su email mediante un token de verificación dedicado (`CommerceVerificationToken`) — sin bloquear el acceso a la plataforma mientras tanto.
 
-### 📭 Sugerencias sin ciclo de vida
-Se eliminó `SuggestionStatus` del modelo. Una sugerencia es un registro histórico inmutable — se crea, se vota, y queda. No tiene estados ni flujo de moderación. Simplifica el modelo de datos y evita lógica de negocio innecesaria para el caso de uso actual.
-
-### ⭐ Votos con rating de 3 valores
-El voto no es binario (votó / no votó) sino un rating: `GOOD`, `REGULAR` o `BAD`. Permite al admin del comercio ver distribución de satisfacción, no solo conteo. El toggle sigue funcionando — si ya votaste puedes cambiar el tipo o quitar el voto.
-
 ### 🌍 Endpoint público /commerces/slug/:slug con @Public()
 El endpoint que resuelve un comercio por slug es público (sin JWT) para permitir que `/feedback/:slug` muestre el nombre del comercio antes del login. Se implementó un decorator `@Public()` + ajuste en `JwtAuthGuard.canActivate()` para saltear la validación de token en endpoints marcados, sin afectar el resto de la cadena de guards.
 
-### 🔗 `commerceId` requerido en Suggestion
-Toda sugerencia pertenece obligatoriamente a un comercio. La URL pública (`/feedback/:slug`) siempre tiene el contexto del comercio, por lo que una sugerencia sin comercio carece de sentido en el modelo de negocio. El campo `commerceId` es `String` (no nullable) en el schema de Prisma.
+### 📭 Reviews sin ciclo de vida ni edición
+`CommerceReview` no tiene estados ni flujo de moderación — es un registro histórico inmutable: se crea y queda. No existe endpoint `PATCH`; el `@@unique([authorId, commerceId])` en DB refuerza que cada MEMBER solo puede calificar un comercio una vez, para siempre.
 
-### 🔐 Acceso al feedback board requiere autenticación (Opción B)
+### 🔗 `commerceId` requerido en CommerceReview
+Toda review pertenece obligatoriamente a un comercio. La URL pública (`/feedback/:slug`) siempre tiene el contexto del comercio, por lo que una review sin comercio carece de sentido en el modelo de negocio. El campo `commerceId` es `String` (no nullable) en el schema de Prisma.
+
+### 🔐 Acceso al feedback board requiere autenticación
 Los usuarios deben registrarse e iniciar sesión para ver, crear y votar sugerencias. Se descartó el acceso anónimo para garantizar integridad del voto — el constraint `@@unique([userId, suggestionId])` en la DB lo enforce. La fricción de registro se mitiga mostrando un modal de login/registro inline en la propia página `/feedback/:slug`, sin redirigir al usuario fuera del contexto del comercio.
-
-### 🗳️ Votos como recurso anidado bajo suggestions
-Los endpoints de votos viven bajo `/suggestions/:suggestionId/votes` (REST anidado) en lugar de `/votes`. Como un voto no tiene identidad propia visible (el usuario solo puede tener uno por sugerencia), no se necesita un ID de voto en las rutas — el par `userId + suggestionId` actúa como clave compuesta para `PATCH` y `DELETE`.
 
 ---
 
