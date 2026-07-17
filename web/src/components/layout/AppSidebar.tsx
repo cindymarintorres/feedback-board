@@ -1,4 +1,4 @@
-import { LayoutDashboard, Shield } from "lucide-react";
+import { LayoutDashboard, Star, Store, Users } from "lucide-react";
 import { NavUser } from "./NavUser";
 import {
   Sidebar,
@@ -15,15 +15,44 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router";
+import type { UserRole } from "feedbackboard-shared";
 
-const navItems = [{ title: "Board", url: "/board", icon: LayoutDashboard }];
+interface NavItem {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+}
 
-const adminItems = [{ title: "Admin", url: "/admin", icon: Shield }];
+// Board y Ratings los ve cualquier rol autenticado — se define una sola vez
+// acá, y cada rol solo agrega lo que le suma por encima de esta base.
+const BASE_NAV_ITEMS: NavItem[] = [
+  { title: "Board", url: "/board", icon: LayoutDashboard },
+  { title: "Ratings", url: "/ratings", icon: Star },
+];
+
+function getNavItemsForRole(role?: UserRole): NavItem[] {
+  switch (role) {
+    case "ADMIN":
+      return [
+        ...BASE_NAV_ITEMS,
+        { title: "Comercios", url: "/commerces", icon: Store },
+        { title: "Usuarios", url: "/users", icon: Users },
+      ];
+    case "COMMERCE_ADMIN":
+      return [
+        ...BASE_NAV_ITEMS,
+        { title: "Comercios", url: "/commerces", icon: Store },
+      ];
+    case "MEMBER":
+    default:
+      return BASE_NAV_ITEMS;
+  }
+}
 
 export function AppSidebar() {
   const { state } = useAuth();
   const location = useLocation();
-  const isAdmin = state.user?.role === "ADMIN";
+  const navItems = getNavItemsForRole(state.user?.role);
 
   return (
     <Sidebar collapsible="icon">
@@ -41,17 +70,16 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* Nav principal */}
+      {/* Nav principal — misma lista para todos los roles, contenido distinto */}
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Categorias</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {/* Nuevo patrón con shadcn v4 + base-ui para componentes que usaban el prop "asChild", ahora se usa "render" */}
+                <SidebarMenuItem key={item.title} className="mb-1">
                   <SidebarMenuButton
-                    render={<Link to={item.url} className=""/>}
+                    render={<Link to={item.url} className="" />}
                     isActive={location.pathname === item.url}
                     className="gap-2 text-accent-foreground hover:text-bolder hover:bg-sidebar-accent hover:text-accent-foreground"
                   >
@@ -63,30 +91,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Solo visible para ADMIN */}
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administración</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    {/* Nuevo patrón con shadcn v4 + base-ui para componentes que usaban el prop "asChild", ahora se usa "render" */}
-                    <SidebarMenuButton
-                      render={<Link to={item.url} />}
-                      isActive={location.pathname === item.url}
-                      className="gap-2"
-                    >
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
 
       {/* Footer — Usuario */}

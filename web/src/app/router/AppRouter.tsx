@@ -13,7 +13,11 @@ import { AppLayout } from "@/components/layout/AppLayout";
 // Pages — importar cuando existan
 // Lazy pages
 
-const GettingStartedPage = lazy(() => import('@/features/GettingStartedPage').then(m => ({ default: m.GettingStartedPage })));
+const GettingStartedPage = lazy(() =>
+  import("@/features/GettingStartedPage").then((m) => ({
+    default: m.GettingStartedPage,
+  })),
+);
 
 const LoginPage = lazy(() =>
   import("@/features/auth/pages/LoginPage").then((m) => ({
@@ -41,7 +45,6 @@ const PasswordResetPage = lazy(() =>
   })),
 );
 // const BoardPage = lazy(() => import('@/features/board/pages/BoardPage').then(m => ({ default: m.BoardPage })));
-// const BoardPage = lazy(() => import('@/features/board/pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const RegisterCommercePage = lazy(() =>
   import("@/features/commerces/pages/RegisterCommercePage").then((m) => ({
     default: m.RegisterCommercePage,
@@ -53,12 +56,24 @@ const CommerceVerifyPage = lazy(() =>
   })),
 );
 
+const FeedbackPage = lazy(() =>
+  import("@/features/reviews/pages/FeedbackPage").then((m) => ({
+    default: m.FeedbackPage,
+  })),
+);
+
+const RatingsPage = lazy(() =>
+  import("@/features/reviews/pages/RatingsPage").then((m) => ({
+    default: m.RatingsPage,
+  })),
+);
+
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Públicas */}
       <Route element={<AuthLayout />}>
-      <Route path="/getting-started" element={<GettingStartedPage />} />
+        <Route path="/getting-started" element={<GettingStartedPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/member/register" element={<RegisterPage />} />
         <Route path="/commerce/register" element={<RegisterCommercePage />} />
@@ -67,18 +82,28 @@ const AppRouter = () => (
         <Route path="/reset-password" element={<PasswordResetPage />} />
       </Route>
 
+      {/* Pública, con lógica de auth propia */}
+      <Route path="/feedback/:slug" element={<FeedbackPage />} />
+
       {/* Protegidas */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/board" replace />} />
-          {/* <Route path="/board" element={<BoardPage />} /> */}
           <Route path="/board" element={<div>Aqui va el board page</div>} />
           <Route path="settings/profile" element={<ProfilePage />} />
 
+          {/* Todos los roles autenticados — cada uno ve sus propios datos */}
+          <Route path="/ratings" element={<RatingsPage />} />
+          {/* COMMERCE_ADMIN y ADMIN */}
+          <Route
+            element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}
+          >
+            <Route path="/commerces" element={<div>Aqui va Commerces</div>} />
+          </Route>
+
           {/* Solo ADMIN */}
           <Route element={<RoleGuard allowedRoles={["ADMIN"]} />}>
-            {/* <Route path="/admin" element={<AdminPage />} /> */}
-            <Route path="/admin" element={<div>Aqui va el admin page</div>} />
+            <Route path="/users" element={<div>Aqui va Users</div>} />
           </Route>
         </Route>
       </Route>

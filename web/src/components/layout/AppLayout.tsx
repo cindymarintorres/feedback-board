@@ -1,4 +1,4 @@
-import { Outlet, useLocation} from "react-router";
+import { Outlet, useLocation } from "react-router";
 import {
   SidebarInset,
   SidebarProvider,
@@ -17,10 +17,12 @@ import { AppSidebar } from "./AppSidebar";
 import { Separator } from "../ui/separator";
 
 export const AppLayout = () => {
-
+  
   const routeTitles: Record<string, string> = {
     "/board": "Board",
-    "/admin": "Admin",
+    "/ratings": "Ratings",
+    "/commerces": "Comercios",
+    "/users": "Usuarios",
     "/settings/profile": "Profile",
   };
 
