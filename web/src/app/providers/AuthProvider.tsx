@@ -10,6 +10,8 @@ import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
 import type { LoginResponse } from "feedbackboard-shared";
 import { tokenStore } from "@/lib/tokenStore";
+import { useCommerceSelectionStore } from "@/features/commerces/store/useCommerceSelectionStore";
+import { useAdminUserSelectionStore } from "@/features/admin/store/useAdminUserSelectionStore";
 
 // ─── Estado inicial vacío ─────────────────────────
 const initialState: AuthState = {
@@ -33,6 +35,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       };
     case "LOGOUT":
       tokenStore.clear(); // limpia Axios
+      useCommerceSelectionStore.getState().clearSelection();
+      useAdminUserSelectionStore.getState().clearSelection();
       return {
         user: null,
         token: null,
