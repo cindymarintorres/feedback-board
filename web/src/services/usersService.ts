@@ -21,4 +21,9 @@ export const usersService = {
     const { data } = await api.patch(`/users/me/password`, payload)
     return data
   },
+  
+  findAll: async (): Promise<PublicUser[]> => {
+    const { data } = await api.get('/users');
+    return PublicUserSchema.array().parse(data);
+  },
 }

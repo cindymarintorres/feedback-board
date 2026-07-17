@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import {
   AddCommerceResponseSchema,
+  CommerceResponseSchema,
   CreateOwnCommerceSchema,
   UpdateCommerceSchema,
 } from "feedbackboard-shared";
@@ -8,6 +9,7 @@ import type {
   CreateOwnCommerceDto,
   AddCommerceResponseDto,
   UpdateCommerceDto,
+  CommerceResponseDto,
 } from "feedbackboard-shared";
 
 export const commerceService = {
@@ -30,5 +32,9 @@ export const commerceService = {
   deleteCommerce: async (id: string): Promise<{ success: boolean }> => {
     const { data } = await api.delete(`/commerces/${id}`);
     return data;
+  },
+  getBySlug: async (slug: string): Promise<CommerceResponseDto> => {
+    const { data } = await api.get(`/commerces/slug/${slug}`);
+    return CommerceResponseSchema.parse(data);
   },
 };
