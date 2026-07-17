@@ -29,17 +29,23 @@ export class CommerceReviewsController {
   }
 
   @Get()
-  @Roles(UserRoleValues.COMMERCE_ADMIN, UserRoleValues.ADMIN)
-  findByCommerce(
-    @Query('commerceId') commerceId: string,
+  @Roles(
+    UserRoleValues.MEMBER,
+    UserRoleValues.COMMERCE_ADMIN,
+    UserRoleValues.ADMIN,
+  )
+  findReviews(
+    @Query('commerceId') commerceId: string | undefined,
+    @Query('ownerId') ownerId: string | undefined,
     @Query('order') order: Order,
     @CurrentUser() currentUser: JwtUser,
   ) {
-    return this.reviewsService.findByCommerce(
-      commerceId,
+    return this.reviewsService.findReviews(
       currentUser.id,
       currentUser.role,
       order,
+      commerceId,
+      ownerId,
     );
   }
 }

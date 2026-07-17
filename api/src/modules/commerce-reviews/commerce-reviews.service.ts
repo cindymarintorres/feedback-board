@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CommerceNotFoundForReviewException,
@@ -27,6 +27,10 @@ export class CommerceReviewsService {
 
     const review = await this.prisma.commerceReview.create({
       data: { ...dto, authorId },
+      include: {
+        author: { select: { id: true, name: true, avatarUrl: true } },
+        commerce: { select: { id: true, name: true, slug: true } },
+      },
     });
 
     this.logger.log(`Review created: ${review.id} by user: ${authorId}`);
@@ -34,31 +38,52 @@ export class CommerceReviewsService {
     return review;
   }
 
-  async findByCommerce(
-    commerceId: string,
+  async findReviews(
     currentUserId: string,
     currentUserRole: UserRole,
     order: Order,
+    commerceId?: string,
+   ownerId?: string,
   ) {
-    const commerce = await this.prisma.commerce.findUnique({
-      where: { id: commerceId },
-      select: { id: true, ownerId: true },
-    });
-    if (!commerce) throw new CommerceNotFoundForReviewException(commerceId);
+    const orderBy = {
+      createdAt: order === 'oldest' ? ('asc' as const) : ('desc' as const),
+    };
+    const include = {
+      author: { select: { id: true, name: true, avatarUrl: true } },
+      commerce: { select: { id: true, name: true, slug: true } },
+    };
 
-    if (
-      currentUserRole === UserRoleValues.COMMERCE_ADMIN &&
-      commerce.ownerId !== currentUserId
-    ) {
-      throw new ForbiddenException('No tienes acceso a este comercio');
+    if (currentUserRole === UserRoleValues.MEMBER) {
+      return this.prisma.commerceReview.findMany({
+        where: { authorId: currentUserId },
+        include,
+        orderBy,
+      });
     }
 
+    if (currentUserRole === UserRoleValues.COMMERCE_ADMIN) {
+      if (!commerceId) throw new BadRequestException('commerceId es requerido');
+      const commerce = await this.prisma.commerce.findUnique({
+        where: { id: commerceId },
+        select: { id: true, ownerId: true },
+      });
+      if (!commerce) throw new CommerceNotFoundForReviewException(commerceId);
+      if (commerce.ownerId !== currentUserId) {
+        throw new ForbiddenException('No tienes acceso a este comercio');
+      }
+      return this.prisma.commerceReview.findMany({
+        where: { commerceId },
+        include,
+        orderBy,
+      });
+    }
+
+    // ADMIN
+    if (!ownerId) throw new BadRequestException('userId es requerido');
     return this.prisma.commerceReview.findMany({
-      where: { commerceId },
-      include: {
-        author: { select: { id: true, name: true, avatarUrl: true } },
-      },
-      orderBy: { createdAt: order === 'oldest' ? 'asc' : 'desc' },
+      where: { commerce: { ownerId } },
+      include,
+      orderBy,
     });
   }
 }

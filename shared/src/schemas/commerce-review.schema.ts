@@ -6,7 +6,7 @@ export const CreateCommerceReviewSchema = z.object({
   stars: z.number().int().min(1, 'Mínimo 1 estrella').max(5, 'Máximo 5 estrellas'),
   category: CategorySchema.optional(),
   comment: z.string().min(1).optional(),
-  commerceId: z.string().uuid('Comercio inválido'),
+  commerceId: z.uuid('Comercio inválido'),
 })
 
 export const CommerceReviewResponseSchema = z.object({
@@ -21,6 +21,11 @@ export const CommerceReviewResponseSchema = z.object({
     id: z.string(),
     name: z.string(),
     avatarUrl: z.string().nullish(),
+  }),
+  commerce: z.object({
+    id: z.string(),
+    name: z.string(),
+    slug: z.string(),
   }),
 })
 
