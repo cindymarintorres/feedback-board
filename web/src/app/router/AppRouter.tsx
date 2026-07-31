@@ -68,6 +68,12 @@ const RatingsPage = lazy(() =>
   })),
 );
 
+const CommercesPage = lazy(() =>
+  import("@/features/commerces/pages/CommercesPage").then((m) => ({
+    default: m.CommercesPage,
+  })),
+);
+
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
@@ -98,7 +104,7 @@ const AppRouter = () => (
           <Route
             element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}
           >
-            <Route path="/commerces" element={<div>Aqui va Commerces</div>} />
+            <Route path="/commerces" element={<CommercesPage />} />
           </Route>
 
           {/* Solo ADMIN */}
