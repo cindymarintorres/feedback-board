@@ -82,7 +82,7 @@ services:
     networks:
       - fb_network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/auth/profile || [ $$? -eq 6 ]"]
       interval: 15s
       timeout: 5s
       retries: 5
