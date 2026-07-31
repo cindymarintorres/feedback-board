@@ -76,7 +76,9 @@ export const authService = {
     return LoginResponseSchema.parse(data); // mismo shape que login: { accessToken, user }
   },
 
-  verifyCommerce: async (token: string): Promise<{ message: string }> => {
+  verifyCommerce: async (
+    token: string,
+  ): Promise<{ message: string; commerceId: string }> => {
     const { data } = await api.get(`/auth/verify-commerce?token=${token}`);
     return CommerceVerificationResponseSchema.parse(data);
   },

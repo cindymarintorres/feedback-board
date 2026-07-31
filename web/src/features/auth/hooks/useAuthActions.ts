@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 import type { LoginDto, LoginResponse } from "feedbackboard-shared";
@@ -9,6 +9,7 @@ export const useAuthActions = () => {
   const navigate = useNavigate();
   const { dispatch } = useAuth();
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   // ───Login ───────────────────────────────────────
   const loginMutation = useMutation({
@@ -24,7 +25,8 @@ export const useAuthActions = () => {
       }); // spinner OFF aquí
 
       setTimeout(() => {
-        navigate("/board");
+        const redirectTo = (location.state as { from?: string } | null)?.from ?? "/board";
+        navigate(redirectTo);
         dispatch({ type: "SET_LOADING", payload: false });
       }, 800); //da tiempo al spinner de mostrarse
     },

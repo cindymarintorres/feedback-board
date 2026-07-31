@@ -39,6 +39,7 @@ export function StarRating({
           <button
             key={starValue}
             type="button"
+            className="cursor-pointer"
             onClick={() => onChange?.(starValue)}
             aria-label={`${starValue} estrellas`}
           >

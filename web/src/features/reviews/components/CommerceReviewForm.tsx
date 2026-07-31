@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 interface CommerceReviewFormProps {
   commerceId: string;
@@ -47,7 +48,12 @@ export function CommerceReviewForm({
         onSuccess();
       },
       onError: (error: unknown) => {
-        toast.error("No pudimos enviar tu reseña. Intentá de nuevo.");
+        toast.error(
+          getErrorMessage(
+            error,
+            "No pudimos enviar tu reseña. Intentá de nuevo.",
+          ),
+        );
         console.error("Create review failed:", error);
       },
     });
@@ -60,7 +66,11 @@ export function CommerceReviewForm({
         name="stars"
         render={({ field }) => (
           <div className="flex justify-center">
-            <StarRating value={field.value} onChange={field.onChange} size={28} />
+            <StarRating
+              value={field.value}
+              onChange={field.onChange}
+              size={28}
+            />
           </div>
         )}
       />
@@ -74,7 +84,7 @@ export function CommerceReviewForm({
         control={control}
         name="category"
         render={({ field }) => (
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select onValueChange={field.onChange} value={field.value ?? ""}>
             <SelectTrigger>
               <SelectValue placeholder="Categoría (opcional)" />
             </SelectTrigger>

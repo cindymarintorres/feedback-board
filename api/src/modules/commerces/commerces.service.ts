@@ -49,8 +49,8 @@ export class CommercesService {
 
   async findBySlug(slug: string) {
     const commerce = await this.prisma.commerce.findUnique({ where: { slug } });
-    if (!commerce) throw new CommerceNotFoundException();
-    return commerce;
+    if (!commerce) throw new CommerceNotFoundException(slug);
+    return { ...commerce, feedbackUrl: this.buildFeedbackUrl(commerce.slug) };
   }
 
   async create(

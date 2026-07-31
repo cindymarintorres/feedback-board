@@ -1,6 +1,6 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, UserPlus, EyeOff, Eye, Building2, FileText } from "lucide-react";
+import { Mail, Lock, User, EyeOff, Eye, Building2, FileText } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
 import { useCommerceActions } from "@/features/commerces/hooks/useCommerceActions";
 import {

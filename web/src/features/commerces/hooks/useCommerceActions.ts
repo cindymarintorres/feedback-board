@@ -15,7 +15,7 @@ export const useCommerceActions = (token?: string) => {
   const navigate = useNavigate();
   const { state, dispatch } = useAuth();
 
-  const registerCommerceMutation = useMutation<RegisterCommerceDto>({
+  const registerCommerceMutation = useMutation({
     mutationFn: (payload: RegisterCommerceDto) =>
       authService.registerCommerce(payload),
     onSuccess: (data: LoginResponse) => {

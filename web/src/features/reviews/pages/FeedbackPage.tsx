@@ -2,7 +2,7 @@ import { useParams, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { commerceService } from "@/services/commerceService";
-import { AppButton } from "@/components/shared";
+import { AppButton, FullscreenSpinner } from "@/components/shared";
 import {
   Card,
   CardContent,
@@ -10,6 +10,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { CommerceReviewForm } from "../components/CommerceReviewForm";
 
 export function FeedbackPage() {
@@ -25,18 +33,27 @@ export function FeedbackPage() {
   });
 
   if (commerceQuery.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Cargando...
-      </div>
-    );
+    return <FullscreenSpinner />;
   }
 
   if (commerceQuery.isError || !commerceQuery.data) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        No pudimos encontrar este comercio.
-      </div>
+      <Dialog open>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Comercio no encontrado</DialogTitle>
+            <DialogDescription>
+              No pudimos encontrar este comercio. Verifica que el enlace sea
+              correcto o contacta al comercio para que te reenvíe el link.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <AppButton type="button" onClick={() => navigate("/login")}>
+              Ir a iniciar sesión
+            </AppButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -44,35 +61,36 @@ export function FeedbackPage() {
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>{commerce.name}</CardTitle>
-            <CardDescription>
-              Para enviar una reseña o voto, debes iniciar sesión.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AppButton
-              type="button"
-              className="w-full"
-              onClick={() =>
-                navigate("/login", { state: { from: location.pathname } })
-              }
-            >
-              Iniciar sesión
+      <Dialog open>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Información</DialogTitle>
+            <DialogDescription>
+              Para enviar una reseña o voto a <strong>{commerce.name}</strong>, debes iniciar sesión.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <AppButton type="button" onClick={() => navigate("/login", { state: { from: location.pathname } })}>
+              Ir a iniciar sesión
             </AppButton>
-          </CardContent>
-        </Card>
-      </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
   if (state.user?.role !== "MEMBER") {
     return (
-      <div className="min-h-screen flex items-center justify-center text-center text-muted-foreground p-4">
-        Solo los usuarios miembros pueden dejar reseñas.
-      </div>
+      <Dialog open>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Información</DialogTitle>
+            <DialogDescription>
+              Solo los usuarios miembros pueden dejar reseñas.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -80,8 +98,8 @@ export function FeedbackPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>{commerce.name}</CardTitle>
-          <CardDescription>Contanos tu experiencia</CardDescription>
+          <CardTitle className="font-bold">{commerce.name}</CardTitle>
+          <CardDescription>Califícanos y cuéntanos tu experiencia</CardDescription>
         </CardHeader>
         <CardContent>
           <CommerceReviewForm
