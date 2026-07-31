@@ -14,7 +14,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "preserveSymlinks": true,
+    "preserveSymlinks": false,
 
     /* Linting */
     "noUnusedLocals": true,
