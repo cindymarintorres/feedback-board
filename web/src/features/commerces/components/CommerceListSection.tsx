@@ -1,13 +1,13 @@
 import { AppButton } from "@/components/shared";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { Plus} from "lucide-react";
 import { useState } from "react";
 import { AddCommerceDialog } from "./AddCommerceDialog";
 import { Separator } from "@/components/ui/separator";
 import type { AddCommerceResponseDto } from "feedbackboard-shared";
 import { DeleteCommerceDialog } from "./DeleteCommerceDialog";
+import { CommerceCard } from "./CommerceCard";
 
 export function CommerceListSection() {
   const { state } = useAuth();
@@ -58,42 +58,12 @@ export function CommerceListSection() {
 
         <CardContent className="space-y-3 max-h-80 overflow-y-auto px-2">
           {commerces.map((com) => (
-            <div key={com.id} className="rounded-lg border p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Store className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{com.name}</p>
-                    <p className="text-xs text-muted-foreground">/{com.slug}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Badge
-                    variant={com.verified ? "default" : "secondary"}
-                    className="leading-0 w-full"
-                  >
-                    {com.verified ? "Verificado" : "Pendiente"}
-                  </Badge>
-                  {com.verified && (
-                    <div className="flex flex-row gap-2">
-                      <AppButton
-                        type="button"
-                        leftIcon={Pencil}
-                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3"
-                        onClick={() => openEdit(com)}
-                        title="Editar"
-                      />
-                      <AppButton
-                        type="button"
-                        leftIcon={Trash2}
-                        className="bg-destructive text-white hover:bg-destructive/90 px-3"
-                        onClick={() => setDeleteTarget(com)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <CommerceCard
+              key={com.id}
+              commerce={com}
+              onEdit={openEdit}
+              onDelete={setDeleteTarget}
+            />
           ))}
         </CardContent>
       </Card>
