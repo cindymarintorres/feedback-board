@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import type {
   CommerceReviewResponseDto,
   Order,
@@ -33,19 +34,18 @@ export function RatingsPage() {
   const [order, setOrder] = useState<Order>("newest");
   const EMPTY_REVIEWS: CommerceReviewResponseDto[] = [];
   const ORDER_LABELS: Record<Order, string> = {
-  newest: "Más recientes",
-  oldest: "Más antiguas",
-};
+    newest: "Más recientes",
+    oldest: "Más antiguas",
+  };
   // COMMERCE_ADMIN: selección de su propio comercio
-  const { activeCommerceId, setActiveCommerceId, commerces } =
-    useActiveCommerce();
+  const { activeCommerceId, setActiveCommerceId, commerces } = useActiveCommerce();
 
   // ADMIN: selección de owner (COMMERCE_ADMIN) cuyos comercios quiere ver.
   // Sin fallback automático al primero — a diferencia de useActiveCommerce,
   // acá puede haber muchos owners y elegir uno al azar no tiene sentido.
   const { selectedUserId, setSelectedUserId } = useAdminUserSelectionStore();
 
-  const commerceAdminsQuery = useQuery<PublicUser[]>({
+  const commerceAdminsQuery = useQuery({
     queryKey: ["commerce-admins"],
     queryFn: () => usersService.findAll(),
     enabled: role === "ADMIN",
@@ -95,12 +95,14 @@ export function RatingsPage() {
             onValueChange={(value) => value && setActiveCommerceId(value)}
           >
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Elegí un comercio" />
+              <SelectValue placeholder="Elegí un comercio" >
+                {commerces.find((c) => c.id === activeCommerceId)?.name}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {commerces.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
+              {commerces.map((com) => (
+                <SelectItem key={com.id} value={com.id}>
+                  {com.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -113,10 +115,16 @@ export function RatingsPage() {
             onValueChange={(value) => value && setSelectedUserId(value)}
           >
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Elegí un usuario (comercio admin)" />
+              <SelectValue placeholder="Elegí un usuario (comercio admin)">
+                {
+                  commerceAdmins.find(
+                    (comerce) => comerce.id === selectedUserId,
+                  )?.name
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {commerceAdmins.map((user : PublicUser) => (
+              {commerceAdmins.map((user: PublicUser) => (
                 <SelectItem key={user.id} value={user.id}>
                   {user.name}
                 </SelectItem>
@@ -146,6 +154,7 @@ export function RatingsPage() {
             {summary.total} reseña{summary.total !== 1 ? "s" : ""}
           </CardDescription>
         </CardHeader>
+
         <CardContent className="flex items-center gap-6 flex-wrap">
           <div className="flex items-center gap-2">
             <StarRating
@@ -167,7 +176,10 @@ export function RatingsPage() {
         </CardContent>
       </Card>
 
+      <Separator />
+
       <div className="space-y-3">
+        <h3 className="font-medium underline">Lista de reseñas</h3>
         {reviewsQuery.isLoading && (
           <p className="text-sm text-muted-foreground">Cargando reseñas...</p>
         )}
