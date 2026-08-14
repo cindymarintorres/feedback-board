@@ -10,6 +10,7 @@ import type {
   UpdateCommerceDto,
 } from "feedbackboard-shared";
 import { commerceService } from "@/services/commerceService";
+import { useCommerceSelectionStore } from "../store/useCommerceSelectionStore";
 
 export const useCommerceActions = (token?: string) => {
   const navigate = useNavigate();
@@ -77,6 +78,11 @@ export const useCommerceActions = (token?: string) => {
         (com) => com.id !== deletedId,
       );
       dispatch({ type: "UPDATE_USER", payload: { commerce: updatedList } });
+
+      const { activeCommerceId, clearSelection } = useCommerceSelectionStore.getState();
+      if (activeCommerceId === deletedId) {
+        clearSelection();
+      }
     },
   });
 
