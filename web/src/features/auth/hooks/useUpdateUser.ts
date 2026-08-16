@@ -4,7 +4,6 @@ import type {
   UpdatePasswordDto,
   UpdateUserDto,
   PublicUser,
-  AdminResetPasswordDto,
 } from "feedbackboard-shared";
 import { useAuth } from "../../../hooks/useAuth";
 
@@ -39,12 +38,9 @@ export const useUpdateUser = () => {
 };
 
 export const useAdminResetPassword = () => {
-  const { state } = useAuth();
-  const id = state.user!.id;
-
   return useMutation({
-    mutationFn: (payload: AdminResetPasswordDto) =>
-      usersService.adminResetPassword(id, payload),
+    mutationFn: (userId: string) =>
+      usersService.adminResetPassword(userId),
     onSuccess: () => {
       console.log("Contraseña reseteada correctamente");
     },
