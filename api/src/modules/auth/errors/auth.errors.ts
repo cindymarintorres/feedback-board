@@ -1,8 +1,14 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 
 export class InvalidCredentialsException extends HttpException {
   constructor() {
     super('Credenciales inválidas', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+export class UserInactiveException extends UnauthorizedException {
+  constructor() {
+    super('Tu cuenta está desactivada. Contacta a un administrador.');
   }
 }
 

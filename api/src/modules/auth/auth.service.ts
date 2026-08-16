@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'; // ← ya no importas BadRe
 import {
   InvalidCredentialsException,
   InvalidTokenException,
+  UserInactiveException,
 } from './errors/auth.errors';
 
 import { JwtService } from '@nestjs/jwt';
@@ -41,13 +42,14 @@ export class AuthService {
   ): Promise<PublicUser> {
     const user = await this.usersService.findByEmailWithCommerce(userEmail);
 
-    if (!user || !user.isActive) throw new InvalidCredentialsException();
+    if (!user) throw new InvalidCredentialsException();
 
     const isPasswordValid = await bcrypt.compare(userPassword, user.password);
-
     if (!isPasswordValid) throw new InvalidCredentialsException();
 
-    const { password, isActive, ownedCommerces, ...rest } = user;
+    if (!user.isActive) throw new UserInactiveException();
+
+    const { password, ownedCommerces, ...rest } = user;
     return { ...rest, commerce: ownedCommerces };
   }
 
@@ -177,7 +179,7 @@ export class AuthService {
       const user = await this.usersService.findById(payload.id);
       if (!user || !user.isActive) throw new InvalidCredentialsException();
 
-      const { isActive, ...publicUser } = user;
+      const publicUser = user;
 
       const newPayload: JwtPayload = {
         id: publicUser.id,
