@@ -8,6 +8,7 @@ import {
   type RegisterFormData,
 } from "@/features/auth/schemas/auth.schema";
 import { useEffect, useState } from "react";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 export const RegisterForm = () => {
   const [showNew, setShowNew] = useState(false);
@@ -20,7 +21,7 @@ export const RegisterForm = () => {
     formState: { errors },
     trigger,
     control,
-    getValues
+    getValues,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterFormSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
@@ -101,7 +102,10 @@ export const RegisterForm = () => {
 
       {registerMutation.isError && (
         <p className="text-xs text-destructive text-center font-medium">
-          Error al crear la cuenta. Intenta de nuevo.
+          {getErrorMessage(
+            registerMutation.error,
+            "Error al crear la cuenta. Intenta de nuevo.",
+          )}
         </p>
       )}
     </form>

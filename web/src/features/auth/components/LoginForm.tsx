@@ -3,8 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, LogIn, EyeOff, Eye } from "lucide-react";
 import { AppButton, AppInput } from "@/components/shared";
 import { useAuthActions } from "@/features/auth/hooks/useAuthActions";
-import { LoginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schema";
+import {
+  LoginSchema,
+  type LoginFormData,
+} from "@/features/auth/schemas/auth.schema";
 import { useState } from "react";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 export const LoginForm = () => {
   const { loginMutation } = useAuthActions();
@@ -16,8 +20,8 @@ export const LoginForm = () => {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
-    defaultValues: { email: '', password: '' },
-    mode: 'onBlur',
+    defaultValues: { email: "", password: "" },
+    mode: "onBlur",
   });
 
   const onSubmit = (data: LoginFormData) => {
@@ -30,7 +34,7 @@ export const LoginForm = () => {
         id="email"
         label="Email"
         type="email"
-        showForgotPassword={true}  // <-- solo aquí
+        showForgotPassword={true} // <-- solo aquí
         placeholder="tu@email.com"
         leftIcon={Mail}
         error={errors.email?.message}
@@ -61,7 +65,10 @@ export const LoginForm = () => {
 
       {loginMutation.isError && (
         <p className="text-xs text-destructive text-center font-medium">
-          Credenciales incorrectas. Intenta de nuevo.
+          {getErrorMessage(
+            loginMutation.error,
+            "Credenciales incorrectas. Intenta de nuevo.",
+          )}
         </p>
       )}
     </form>
