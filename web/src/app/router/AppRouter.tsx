@@ -74,6 +74,12 @@ const CommercesPage = lazy(() =>
   })),
 );
 
+const UsersPage = lazy(() =>
+  import("@/features/admin/pages/UsersPage").then((m) => ({
+    default: m.UsersPage,
+  })),
+);
+
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
@@ -94,22 +100,20 @@ const AppRouter = () => (
       {/* Protegidas */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
+        {/* Todos los roles autenticados — cada uno ve sus propios datos */}
           <Route path="/" element={<Navigate to="/board" replace />} />
           <Route path="/board" element={<div>Aqui va el board page</div>} />
           <Route path="settings/profile" element={<ProfilePage />} />
-
-          {/* Todos los roles autenticados — cada uno ve sus propios datos */}
           <Route path="/ratings" element={<RatingsPage />} />
+
           {/* COMMERCE_ADMIN y ADMIN */}
-          <Route
-            element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}
-          >
+          <Route element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}>
             <Route path="/commerces" element={<CommercesPage />} />
           </Route>
 
           {/* Solo ADMIN */}
           <Route element={<RoleGuard allowedRoles={["ADMIN"]} />}>
-            <Route path="/users" element={<div>Aqui va Users</div>} />
+            <Route path="/admin/users" element={<UsersPage />} />
           </Route>
         </Route>
       </Route>

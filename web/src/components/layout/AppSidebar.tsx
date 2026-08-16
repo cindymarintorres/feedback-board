@@ -36,7 +36,7 @@ function getNavItemsForRole(role?: UserRole): NavItem[] {
       return [
         ...BASE_NAV_ITEMS,
         { title: "Comercios", url: "/commerces", icon: Store },
-        { title: "Usuarios", url: "/users", icon: Users },
+        { title: "Usuarios", url: "/admin/users", icon: Users },
       ];
     case "COMMERCE_ADMIN":
       return [
