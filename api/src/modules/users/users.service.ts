@@ -10,17 +10,22 @@ import {
   CreateUserDto,
   UpdateUserDto,
   UpdatePasswordDto,
-  AdminResetPasswordDto,
 } from './schemas/user.schema';
 import { type UserRole } from 'feedbackboard-shared';
 import { Prisma } from 'generated/prisma/client';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('mail') private readonly mailQueue: Queue, // Cola
+  ) {}
 
   async findAll() {
-    return this.prisma.user.findMany({
+    const users = await this.prisma.user.findMany({
       select: {
         id: true,
         name: true,
@@ -29,8 +34,16 @@ export class UsersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        ownedCommerces: {
+          select: { id: true, name: true, slug: true, verified: true },
+        },
       },
     });
+
+    return users.map(({ ownedCommerces, ...rest }) => ({
+      ...rest,
+      commerce: ownedCommerces,
+    }));
   }
 
   async findById(id: string) {
@@ -96,13 +109,22 @@ export class UsersService {
     return updatedUser;
   }
 
-  async adminResetPassword(id: string, dto: AdminResetPasswordDto) {
+  async adminResetPassword(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new UserNotFoundException(id);
-    const hashed = await bcrypt.hash(dto.newPassword, 10);
+
+    const tempPassword = crypto.randomBytes(6).toString('hex');
+    const hashed = await bcrypt.hash(tempPassword, 10);
+
     await this.prisma.user.update({
       where: { id },
       data: { password: hashed },
+    });
+
+    await this.mailQueue.add('admin-password-reset', {
+      email: user.email,
+      name: user.name,
+      tempPassword,
     });
 
     return { success: true };
@@ -112,7 +134,10 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new UserNotFoundException(id);
 
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+    });
     return { success: true };
   }
 

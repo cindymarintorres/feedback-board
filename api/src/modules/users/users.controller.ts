@@ -10,12 +10,14 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
-  AdminResetPasswordSchema,
   JwtUser,
   UpdatePasswordSchema,
   UpdateUserSchema,
 } from 'feedbackboard-shared';
-import { AdminResetPasswordDto, UpdatePasswordDto, UpdateUserDto } from './schemas/user.schema';
+import {
+  UpdatePasswordDto,
+  UpdateUserDto,
+} from './schemas/user.schema';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -69,15 +71,11 @@ export class UsersController {
     return this.usersService.updatePassword(currentUser.id, dto);
   }
 
-  // Admin resetea la contraseña de cualquier usuario — sin currentPassword
+  // Admin resetea la contraseña de cualquier usuario — genera una temporal y la envía por correo
   @Patch(':id/password')
   @Roles(UserRoleValues.ADMIN)
-  adminResetPassword(
-    @Param('id') id: string,
-    @Body(new ZodValidationPipe(AdminResetPasswordSchema))
-    dto: AdminResetPasswordDto,
-  ) {
-    return this.usersService.adminResetPassword(id, dto);
+  adminResetPassword(@Param('id') id: string) {
+    return this.usersService.adminResetPassword(id);
   }
 
   @Delete(':id')

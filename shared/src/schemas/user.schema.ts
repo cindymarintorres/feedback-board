@@ -12,6 +12,7 @@ export const PublicUserSchema = z.object({
   email: z.email(),
   name: z.string(),
   role: UserRoleSchema,
+  isActive: z.boolean(),
   avatarUrl: z.string().nullish(),
   commerce: z
     .array(
@@ -62,10 +63,6 @@ export const UpdatePasswordSchema = z.object({
   newPassword: z.string().min(6),
 });
 
-export const AdminResetPasswordSchema = z.object({
-  newPassword: z.string().min(6),
-})
-
 export const JwtPayloadSchema = z.object({
   id: z.string(),
   email: z.email(),
@@ -83,4 +80,3 @@ export type PublicUser = z.infer<typeof PublicUserSchema>;
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
 export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
 export type UpdatePasswordDto = z.infer<typeof UpdatePasswordSchema>;
-export type AdminResetPasswordDto = z.infer<typeof AdminResetPasswordSchema>;
