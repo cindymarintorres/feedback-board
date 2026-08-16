@@ -91,7 +91,7 @@ export function RatingsPage() {
       <div className="flex gap-3 flex-wrap items-center">
         {role === "COMMERCE_ADMIN" && (
           <Select
-            value={activeCommerceId ?? undefined}
+            value={activeCommerceId ?? ""}
             onValueChange={(value) => value && setActiveCommerceId(value)}
           >
             <SelectTrigger className="w-64">
@@ -111,7 +111,7 @@ export function RatingsPage() {
 
         {role === "ADMIN" && (
           <Select
-            value={selectedUserId ?? undefined}
+            value={selectedUserId ?? ""}
             onValueChange={(value) => value && setSelectedUserId(value)}
           >
             <SelectTrigger className="w-64">
