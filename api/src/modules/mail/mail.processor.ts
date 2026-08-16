@@ -58,11 +58,31 @@ export class MailProcessor {
 
   @Process('commerce-verify')
   async handleCommerceVerify(
-    job: Job<{ email: string; name: string; commerceName: string; token: string }>,
+    job: Job<{
+      email: string;
+      name: string;
+      commerceName: string;
+      token: string;
+    }>,
   ): Promise<void> {
     const { email, name, commerceName, token } = job.data;
     this.logger.log(`Enviando email de verificación de comercio a ${email}`);
-    await this.mailService.sendCommerceVerification(email, name, commerceName, token);
+    await this.mailService.sendCommerceVerification(
+      email,
+      name,
+      commerceName,
+      token,
+    );
     this.logger.log(`Email de verificación de comercio enviado a ${email}`);
+  }
+
+  @Process('admin-password-reset')
+  async handleAdminPasswordReset(
+    job: Job<{ email: string; name: string; tempPassword: string }>,
+  ): Promise<void> {
+    const { email, name, tempPassword } = job.data;
+    this.logger.log(`Enviando email de reset (admin) a ${email}`);
+    await this.mailService.sendAdminPasswordReset(email, name, tempPassword);
+    this.logger.log(`Email de reset (admin) enviado a ${email}`);
   }
 }

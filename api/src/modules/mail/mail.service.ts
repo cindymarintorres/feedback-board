@@ -109,4 +109,26 @@ export class MailService {
       throw error;
     }
   }
+
+  async sendAdminPasswordReset(
+    email: string,
+    name: string,
+    tempPassword: string,
+  ): Promise<void> {
+    const webUrl = this.config.getOrThrow<string>('WEB_URL');
+    const loginUrl = `${webUrl}${ROUTES.auth.login}`;
+
+    try {
+      await this.mailer.sendMail({
+        to: email,
+        subject: 'Tu contraseña fue restablecida — FeedbackBoard',
+        template: 'admin-password-reset',
+        context: { name, tempPassword, loginUrl },
+      });
+      this.logger.log(`✅ Admin password reset email enviado a ${email}`);
+    } catch (error) {
+      this.logger.error('❌ Error enviando admin password reset email', error);
+      throw error;
+    }
+  }
 }
