@@ -14,10 +14,7 @@ import {
   UpdatePasswordSchema,
   UpdateUserSchema,
 } from 'feedbackboard-shared';
-import {
-  UpdatePasswordDto,
-  UpdateUserDto,
-} from './schemas/user.schema';
+import { UpdatePasswordDto, UpdateUserDto } from './schemas/user.schema';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -78,10 +75,21 @@ export class UsersController {
     return this.usersService.adminResetPassword(id);
   }
 
+  @Patch(':id/deactivate')
+  @Roles(UserRoleValues.ADMIN)
+  deactivate(@Param('id') id: string) {
+    return this.usersService.setActiveStatus(id, false);
+  }
+
+  @Patch(':id/activate')
+  @Roles(UserRoleValues.ADMIN)
+  activate(@Param('id') id: string) {
+    return this.usersService.setActiveStatus(id, true);
+  }
+
   @Delete(':id')
   @Roles(UserRoleValues.ADMIN)
   remove(@Param('id') id: string) {
-    //Delete User
     return this.usersService.remove(id);
   }
 }

@@ -3,6 +3,7 @@ import {
   UserNotFoundException,
   EmailAlreadyInUseException,
   IncorrectPasswordException,
+  UserHasRelatedRecordsException,
 } from './errors/users.errors';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
@@ -130,14 +131,33 @@ export class UsersService {
     return { success: true };
   }
 
-  async remove(id: string) {
+  async setActiveStatus(id: string, isActive: boolean) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new UserNotFoundException(id);
 
     await this.prisma.user.update({
       where: { id },
-      data: { isActive: false },
+      data: { isActive },
     });
+    return { success: true };
+  }
+
+  async remove(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new UserNotFoundException(id);
+
+    try {
+      await this.prisma.user.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new UserHasRelatedRecordsException(id);
+      }
+      throw error;
+    }
+
     return { success: true };
   }
 

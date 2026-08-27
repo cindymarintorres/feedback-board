@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 
 export class UserNotFoundException extends HttpException {
   constructor(id?: string) {
@@ -18,5 +18,13 @@ export class EmailAlreadyInUseException extends HttpException {
 export class IncorrectPasswordException extends HttpException {
   constructor() {
     super('La contraseña actual es incorrecta', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+export class UserHasRelatedRecordsException extends BadRequestException {
+  constructor(id: string) {
+    super(
+      `No se puede eliminar el usuario ${id}: tiene reseñas, comercios u otros registros asociados. Desactivalo en su lugar.`,
+    );
   }
 }
