@@ -28,6 +28,16 @@ export const usersService = {
     const { data } = await api.patch(`/users/me/password`, payload);
     return data;
   },
+  
+  activate: async (id: string): Promise<{ success: boolean }> => {
+    const { data } = await api.patch(`/users/${id}/activate`);
+    return data;
+  },
+
+  deactivate: async (id: string): Promise<{ success: boolean }> => {
+    const { data } = await api.patch(`/users/${id}/deactivate`);
+    return data;
+  },
 
   remove: async (id: string): Promise<{ success: boolean }> => {
     const { data } = await api.delete(`/users/${id}`);
