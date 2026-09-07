@@ -6,6 +6,8 @@ import {
   JwtUser,
   UserRoleValues,
   Order,
+  PlatformStatsQuerySchema,
+  PlatformStatsQueryDto,
 } from 'feedbackboard-shared';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -47,5 +49,14 @@ export class CommerceReviewsController {
       commerceId,
       ownerId,
     );
+  }
+
+  @Get('platform-stats')
+  @Roles(UserRoleValues.ADMIN)
+  getPlatformStats(
+    @Query(new ZodValidationPipe(PlatformStatsQuerySchema))
+    query: PlatformStatsQueryDto,
+  ) {
+    return this.reviewsService.getPlatformStats(query.from, query.to);
   }
 }
