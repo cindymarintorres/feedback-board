@@ -2,11 +2,15 @@ import { api } from "@/lib/api";
 import {
   CreateCommerceReviewSchema,
   CommerceReviewResponseSchema,
+  PlatformStatsQuerySchema,
+  PlatformStatsResponseSchema,
 } from "feedbackboard-shared";
 import type {
   CreateCommerceReviewDto,
   CommerceReviewResponseDto,
   Order,
+  PlatformStatsQueryDto,
+  PlatformStatsResponseDto,
 } from "feedbackboard-shared";
 
 export const commerceReviewService = {
@@ -32,5 +36,15 @@ export const commerceReviewService = {
       params: { commerceId, ownerId, order },
     });
     return CommerceReviewResponseSchema.array().parse(data);
+  },
+
+  getPlatformStats: async (
+    query: PlatformStatsQueryDto,
+  ): Promise<PlatformStatsResponseDto> => {
+    const safeQuery = PlatformStatsQuerySchema.parse(query);
+    const { data } = await api.get("/commerce-reviews/platform-stats", {
+      params: safeQuery,
+    });
+    return PlatformStatsResponseSchema.parse(data);
   },
 };
