@@ -44,7 +44,11 @@ const PasswordResetPage = lazy(() =>
     default: m.PasswordResetPage,
   })),
 );
-// const BoardPage = lazy(() => import('@/features/board/pages/BoardPage').then(m => ({ default: m.BoardPage })));
+const BoardPage = lazy(() =>
+  import("@/features/board/pages/BoardPage").then((m) => ({
+    default: m.BoardPage,
+  })),
+);
 const RegisterCommercePage = lazy(() =>
   import("@/features/commerces/pages/RegisterCommercePage").then((m) => ({
     default: m.RegisterCommercePage,
@@ -100,14 +104,16 @@ const AppRouter = () => (
       {/* Protegidas */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-        {/* Todos los roles autenticados — cada uno ve sus propios datos */}
+          {/* Todos los roles autenticados — cada uno ve sus propios datos */}
           <Route path="/" element={<Navigate to="/board" replace />} />
-          <Route path="/board" element={<div>Aqui va el board page</div>} />
+          <Route path="/board" element={<BoardPage />} />
           <Route path="settings/profile" element={<ProfilePage />} />
           <Route path="/ratings" element={<RatingsPage />} />
 
           {/* COMMERCE_ADMIN y ADMIN */}
-          <Route element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}>
+          <Route
+            element={<RoleGuard allowedRoles={["ADMIN", "COMMERCE_ADMIN"]} />}
+          >
             <Route path="/commerces" element={<CommercesPage />} />
           </Route>
 
