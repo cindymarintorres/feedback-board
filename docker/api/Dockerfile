@@ -1,4 +1,4 @@
-FROM cemarin/node-base:20-alpine
+FROM node:24-alpine
 ENV CI=true
 
 RUN apk add --no-cache openssl libc6-compat wget
@@ -18,7 +18,7 @@ COPY api/package*.json ./
 COPY api/prisma ./prisma
 
 #Resolucion de hoisting de paquetes
-RUN echo "shamefully-hoist=true" > .npmrc && echo "node-linker=hoisted" >> .npmrc
+RUN echo "shamefully-hoist=true" > .npmrc && echo "node-linker=hoisted" >> .npmrc && echo "engine-strict=true" >> .npmrc
 
 # package.json references file:../shared (which expects it at /shared because api is at /app)
 RUN pnpm install --strict-peer-dependencies=false

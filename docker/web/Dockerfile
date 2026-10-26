@@ -1,4 +1,4 @@
-FROM cemarin/node-base:20-alpine
+FROM node:24-alpine
 ENV CI=true
 
 #instala pnpm de forma consistente
@@ -15,7 +15,7 @@ RUN cd /shared && pnpm install && pnpm run build
 COPY web/package*.json ./
 
 #Resolucion de hoisting de paquetes
-RUN echo "shamefully-hoist=true" > .npmrc && echo "node-linker=hoisted" >> .npmrc
+RUN echo "shamefully-hoist=true" > .npmrc && echo "node-linker=hoisted" >> .npmrc && echo "engine-strict=true" >> .npmrc
 
 # package.json references file:../shared
 RUN pnpm install --strict-peer-dependencies=false
