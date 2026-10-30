@@ -300,7 +300,7 @@ Los warnings `Unknown at rule @theme` y `Unknown at rule @custom-variant` son **
 ## 🧭 Decisiones técnicas
 
 ### 📄 Un solo `.env` en la raíz
-Todos los proyectos en `proyectos_personales/` siguen el mismo patrón: un `.env` raíz como fuente de verdad. Docker Compose lo inyecta en los containers y NestJS lo lee en runtime. El `api/.env` interno es exclusivo para el CLI de Prisma en desarrollo local.
+Docker Compose lo inyecta en los containers y NestJS lo lee en runtime. El `api/.env` interno es exclusivo para el CLI de Prisma en desarrollo local.
 
 ### ⚙️ `prisma generate` en el `command` del compose
 Mover `prisma generate` del Dockerfile al `command` del compose evita el error de variables de entorno no disponibles en build time. En el momento que corre el `command`, Docker ya inyectó todas las variables.
